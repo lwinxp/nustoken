@@ -35,7 +35,7 @@ contract NUSElections {
      * Create a new election
      * @param options a list of options, always start from index 0. (frontend need to configure it to start from 0)
      */
-    constructor(uint256[] memory options) {
+    constructor(uint256[] memory options) public {
         electionOwner = msg.sender;
         votingOptions = options;
         electionStatus = false;
@@ -214,7 +214,7 @@ contract NUSElections {
         return totalVotes;
     }
 
-    function test(uint a, uint b) public returns(uint) {
+    function test(uint a, uint b) public public returns(uint) {
         uint x = (a - 1) / b + 1;
         return x;
     }
