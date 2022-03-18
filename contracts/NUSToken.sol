@@ -6,7 +6,8 @@ contract NUSToken {
 
     /**
     TO DO LIST:
-    1. 
+    1. figure out how the approval system would work, not sure if there is a way to auto-approve token usage for any given amt
+        - now you have to approve for a fixed amount. There should be a "limitless" approval for the amount of tokens used 
     */
 
     
