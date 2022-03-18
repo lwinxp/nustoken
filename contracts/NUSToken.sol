@@ -17,7 +17,7 @@ contract NUSToken {
     mapping(address => bool) whitelistAddresses; // extra addresses that can distribute tokens, does not include contract owner (aka NUS)
     mapping(address => bool) blacklistAddresses; // addresses that are blacklisted and cannot see results or bid for modules
     mapping(address => bool) fineAddresses; // addresses that can fine users/students (eg; NUS, library)
-    address public owner = msg.sender; // contract owner is NUS, NUS deploys this contract
+    address public owner; // contract owner should be NUS, since NUS deploys this contract
 
 
     // EVENTS
