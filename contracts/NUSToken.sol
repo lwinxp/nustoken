@@ -259,6 +259,29 @@ contract NUSToken {
         erc20Contract.approve(receipt, amt);
     }
 
+    // GETTERS
 
+    function getTotalSupply() returns (uint256) {
+        return SUPPLY_TOKEN_LIMIT;
+    }
 
+    function getSemesterTokenDistributionNumber() returns (uint256) {
+        return SEMESTER_TOKEN_DISTRIBUTION_NUMBER;
+    }
+
+    function getOwner() returns (uint256) {
+        return owner;
+    }
+
+    function getWhitelistAddresses() returns (address[]) {
+        return whitelistAddresses;
+    }
+
+    function getBlacklistAddresses() returns (address[]) {
+        return blacklistAddresses;
+    }
+
+    function getFineAddresses() returns (address[]) {
+        return fineAddresses;
+    }
 }
