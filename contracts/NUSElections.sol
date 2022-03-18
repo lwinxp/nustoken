@@ -225,6 +225,7 @@ contract NUSElections {
         return totalVotes;
     }
 
+
     function getMinimumVoters() public view returns(uint256) {
         return minimumVoters;
     }
@@ -235,11 +236,6 @@ contract NUSElections {
 
     function getElectionStatus() public view returns(bool) {
         return electionStatus;
-    }
-
-    function test(uint a, uint b) public pure returns(uint) {
-        uint x = (a - 1) / b + 1;
-        return x;
     }
 
 }

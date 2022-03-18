@@ -61,8 +61,8 @@ contract ERC20 {
     mapping(address => uint256) balances;
     
     
-    string public constant name = "IS4302ERC20";
-    string public constant symbol = "IS4302";
+    string public constant name = "NUSToken";
+    string public constant symbol = "NUST";
     uint8 public constant decimals = 18;
     uint256 totalSupply_;
   
