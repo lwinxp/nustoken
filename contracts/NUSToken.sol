@@ -4,6 +4,12 @@ import './ERC20.sol';
 
 contract NUSToken {
 
+    /**
+    TO DO LIST:
+    1. 
+    */
+
+    
 
     ERC20 erc20Contract;
     uint256 SUPPLY_TOKEN_LIMIT = (2**256) - 1; // supply of tokens
@@ -31,8 +37,14 @@ contract NUSToken {
     // tokens has been given to the user
     event gaveTokens(address to, uint256 amt);
 
+    // tokens distributed at the start of the semester
+    event semesterTokensDistributed(address[] addresses);
+
     // tokens has been taken from the user 
     event tookTokens(address from, uint256 amt);
+
+    // all tokens taken from the given addresses
+    event tokensRetrieved(address[] addresses);
 
     // user is fined
     event fined(address from, uint256 amt);
@@ -224,6 +236,7 @@ contract NUSToken {
         for (uint256 i=0; i<addresses.length; i++) {
             giveTokens(addresses[i], SEMESTER_TOKEN_DISTRIBUTION_NUMBER);
         }
+        emit semesterTokensDistributed(addresses);
     }
 
     /** 
@@ -237,6 +250,7 @@ contract NUSToken {
         for (uint256 i=0; i<addresses.length; i++) {
             takeTokens(addresses[i], this.balanceOf(addresses[i]));
         }
+        emit tokensRetrieved(addresses);
     }
 
 
