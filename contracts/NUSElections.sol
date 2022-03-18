@@ -30,16 +30,18 @@ contract NUSElections {
     mapping(uint256 => uint256) votingResults;
     bool electionStatus;
     uint256 totalVotes = 0;
+    uint256 minimumVoters = 0;
 
     /** 
      * Create a new election
      * @param options a list of options, always start from index 0. (frontend need to configure it to start from 0)
      */
-    constructor(uint256[] memory options) public {
+    constructor(uint256[] memory options, uint256 minVoters) public {
         electionOwner = msg.sender;
         votingOptions = options;
         electionStatus = false;
         votingResultsList = new uint256[](options.length);
+        minimumVoters = minVoters;
     }
 
     // events 
@@ -80,6 +82,15 @@ contract NUSElections {
         _;
     }
 
+    modifier electionOwnerOnly() {
+        require(electionOwner == msg.sender, "only election owner can perform this action");
+        _;
+    }
+
+    modifier minimumVotersReached() {
+        require(voterList.length >= minimumVoters, "election has not met minimum required number of voters");
+        _;
+    }
     // main functions 
 
     /**
@@ -104,7 +115,7 @@ contract NUSElections {
     * Function to tally vote, once the tally of vote is completed, the election has ended. 
     * This function will update votingResults and votingResultsList
     **/
-    function tallyVote() public electionOngoing {
+    function tallyVote() public electionOngoing electionOwnerOnly minimumVotersReached {
         // count the votes 
         for (uint256 i=0; i<voterList.length; i++) {
             Voter memory curr_voter = voters[voterList[i]];
@@ -125,7 +136,7 @@ contract NUSElections {
     * Function to get the voting result after the tally of the vote is completed. 
     **/
 
-    function getVotingResult() public electionEnded returns(uint256[] memory) {
+    function getVotingResult() public electionEnded electionOwnerOnly returns(uint256[] memory) {
         // find the max vote as the winner vote 
         uint256 maxVoteCount = 0;
         uint256 totalNumberWinningVote = 0; // to keep track if there is a draw 
@@ -214,9 +225,17 @@ contract NUSElections {
         return totalVotes;
     }
 
-    function test(uint a, uint b) public pure returns(uint) {
-        uint x = (a - 1) / b + 1;
-        return x;
+
+    function getMinimumVoters() public view returns(uint256) {
+        return minimumVoters;
+    }
+
+    function showVotingResult() public view electionEnded returns(uint256[] memory) {
+        return votingResultsList;
+    }
+
+    function getElectionStatus() public view returns(bool) {
+        return electionStatus;
     }
 
 }
