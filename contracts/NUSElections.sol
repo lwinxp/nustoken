@@ -214,7 +214,7 @@ contract NUSElections {
         return totalVotes;
     }
 
-    function test(uint a, uint b) public public returns(uint) {
+    function test(uint a, uint b) public pure returns(uint) {
         uint x = (a - 1) / b + 1;
         return x;
     }
