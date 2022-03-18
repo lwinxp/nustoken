@@ -269,7 +269,7 @@ contract NUSToken {
         return SEMESTER_TOKEN_DISTRIBUTION_NUMBER;
     }
 
-    function getOwner() returns (uint256) {
+    function getOwner() returns (address) {
         return owner;
     }
 
