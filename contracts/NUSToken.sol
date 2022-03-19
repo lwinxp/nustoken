@@ -232,6 +232,10 @@ contract NUSToken {
         return blacklistedAddresses[addr];
     }
 
+    function isAddressInCanBlacklistAddresses(address addr) view public returns (bool) {
+        return canBlacklistAddresses[addr];
+    }
+
     function isAddressInCanFineAddresses(address addr) view public returns (bool) {
         return canFineAddresses[addr];
     }
