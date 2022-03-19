@@ -90,6 +90,7 @@ contract NUSToken {
         erc20Contract.mint(address(this), SUPPLY_TOKEN_LIMIT); // mints all tokens at once
         owner = msg.sender;
         whitelistAddresses[owner] = true;
+        canBlacklistAddresses[owner] = true;
         canFineAddresses[owner] = true;
         typeOfAdd[0] = "whitelistAddresses";
         typeOfAdd[1] = "blacklistedAddresses";
