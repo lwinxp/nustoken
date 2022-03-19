@@ -71,7 +71,6 @@ contract NUSToken {
         _;
     }
 
-
     /** 
     // @dev checking if msg sender is eligible to fine users/students, ie; in canFineAddresses
     */
@@ -86,9 +85,9 @@ contract NUSToken {
     * @dev create new NUSToken instance, with addresses for whitelist, blacklist, addresses that can fine.
     */
     constructor() public {
-        ERC20 e = new ERC20();
-        e.mint(address(this), SUPPLY_TOKEN_LIMIT);
-        erc20Contract = e;
+        ERC20 erc20Contract = new ERC20();
+        erc20Contract.mint(address(this), SUPPLY_TOKEN_LIMIT);
+        // erc20Contract = e;
         owner = msg.sender;
         whitelistAddresses[owner] = true;
         canFineAddresses[owner] = true;
@@ -114,7 +113,7 @@ contract NUSToken {
     * @dev modify list (add or remove) with a given address
     *      if remove then sets the address to false in mapping, 
     *      if add then sets the address to true in mapping.
-    * @param addr a list of addressses to add into whitelist
+    * @param addr a list of addresses to add into whitelist
     * @param typeOfList type of list to modify (0: whitelist, 1: blacklist, 2:can blacklist, 3: can fine)
     * @param addOrRemove to decide to add or remove from the list. true for add, false for remove.
     */
@@ -134,6 +133,16 @@ contract NUSToken {
         emit modifiedAddressList(addr, typeOfAdd[typeOfList], addOrRemove);
     }
 
+    /** 
+    * @dev add an address to the blacklist,
+    *      only addresses in the CanBlacklistAddresses 
+    *      list can do this
+    * @param addr a list of addresses to add into whitelist
+    */
+    function addToBlackList(address addr) public isCanBlacklist {
+        blacklistedAddresses[addr] = true;
+        emit modifiedAddressList(addr, typeOfAdd[1], true);
+    }
 
     /** 
     * @dev transfer tokens from supply pool to receiver 
