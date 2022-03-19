@@ -20,13 +20,13 @@ contract NUSToken {
     mapping(address => bool) blacklistedAddresses; // addresses that are blacklisted and cannot see results or bid for modules
     mapping(address => bool) canBlacklistAddresses; // addresses that can blacklist other addresses
     mapping(address => bool) canFineAddresses; // addresses that can fine users/students (eg; NUS, library)
-    mapping(uint256 => string) typeOfAdd;
+    mapping(uint256 => string) typeOfAdd; // mapping of uint256 to string (name) (0: whitelist, 1: blacklist, 2:can blacklist, 3: can fine)
     address public owner; // contract owner should be NUS, since NUS deploys this contract
 
 
     // EVENTS
     
-    // addition and removal of addresses into whitelist
+    // addition or removal of an address
     event addedAddress(address addr, string typeOfAddress);
 
     // tokens has been given to the user
