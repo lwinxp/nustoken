@@ -8,6 +8,10 @@ contract NUSToken {
     TO DO LIST:
     1. figure out how the approval system would work, not sure if there is a way to auto-approve token usage for any given amt
         - now you have to approve for a fixed amount. There should be a "limitless" approval for the amount of tokens used 
+
+    2. need to implement mint function to create all the tokens initially. can create a minted bool to check if already minted
+    3. need to get canBlacklistAddresses modifiers and list
+    4. blacklist addresses etc need to be public
     */
 
     
@@ -16,8 +20,10 @@ contract NUSToken {
     uint256 SUPPLY_TOKEN_LIMIT = (2**256) - 1; // supply of tokens
     uint256 SEMESTER_TOKEN_DISTRIBUTION_NUMBER = 10000; // no. of tokens to be given out every semester
     mapping(address => bool) whitelistAddresses; // extra addresses that can distribute tokens, does not include contract owner (aka NUS)
-    mapping(address => bool) blacklistAddresses; // addresses that are blacklisted and cannot see results or bid for modules
-    mapping(address => bool) fineAddresses; // addresses that can fine users/students (eg; NUS, library)
+    mapping(address => bool) blacklistedAddresses; // addresses that are blacklisted and cannot see results or bid for modules
+
+    mapping(address => bool) canBlacklistAddresses; // addresses that can blacklist other addresses
+    mapping(address => bool) canFineAddresses; // addresses that can fine users/students (eg; NUS, library)
     address public owner; // contract owner should be NUS, since NUS deploys this contract
 
 
@@ -28,12 +34,12 @@ contract NUSToken {
     event removedWhitelistAddresses(address[] addresses);   
 
     // addition and removal of addresses into blacklist
-    event addedBlacklistAddresses(address[] addresses);
-    event removedBlacklistAddresses(address[] addresses);   
+    event addedblacklistedAddresses(address[] addresses);
+    event removedblacklistedAddresses(address[] addresses);   
 
     // addition and removal of addresses into list of addresses that can fine
-    event addedFineAddresses(address[] addresses);
-    event removedFineAddresses(address[] addresses);
+    event addedCanFineAddresses(address[] addresses);
+    event removedCanFineAddresses(address[] addresses);
 
     // tokens has been given to the user
     event gaveTokens(address to, uint256 amt);
@@ -67,7 +73,7 @@ contract NUSToken {
     }
 
     /** 
-    // @dev checking if msg sender is eligible to fine users/students, ie; in fineAddresses
+    // @dev checking if msg sender is eligible to fine users/students, ie; in canFineAddresses
     */
     modifier isFineAddress() {
         require(whitelistAddresses[msg.sender], "Not an address that is allowed to fine");
@@ -83,16 +89,16 @@ contract NUSToken {
         erc20Contract = e;
         owner = msg.sender;
         whitelistAddresses[owner] = true;
-        fineAddresses[owner] = true;
+        canFineAddresses[owner] = true;
     }
 
     /** 
     * @dev create new NUSToken instance, with addresses for whitelist, blacklist, addresses that can fine.
     * @param whitelistAddresses a list of addresses in the whitelist
-    * @param blacklistAddresses a list of addresses in the blacklist
-    * @param fineAddresses a list of addresses in the list of addresses that can fine
+    * @param blacklistedAddresses a list of addresses in the blacklist
+    * @param canFineAddresses a list of addresses in the list of addresses that can fine
     */
-    constructor(address[] memory whitelistAddresses, address[] memory blacklistAddresses, address[] memory fineAddresses) public {
+    constructor(address[] memory whitelistAddresses, address[] memory blacklistedAddresses, address[] memory canFineAddresses) public {
         ERC20 e = new ERC20();
         erc20Contract = e;
         owner = msg.sender;
@@ -102,13 +108,13 @@ contract NUSToken {
             whitelistAddresses[whitelistAddresses[i]] = true;
         }
 
-        for (uint256 i=0; i < blacklistAddresses.length; i++) {
-            blacklistAddresses[blacklistAddresses[i]] = true;
+        for (uint256 i=0; i < blacklistedAddresses.length; i++) {
+            blacklistedAddresses[blacklistedAddresses[i]] = true;
         }
 
-        fineAddresses[owner] = true;
-        for (uint256 i=0; i < fineAddresses.length; i++) {
-            fineAddresses[fineAddresses[i]] = true;
+        canFineAddresses[owner] = true;
+        for (uint256 i=0; i < canFineAddresses.length; i++) {
+            canFineAddresses[canFineAddresses[i]] = true;
         }
 
     }
@@ -150,44 +156,44 @@ contract NUSToken {
     * @dev add additional addresses to the blacklist
     * @param addresses a list of addressses to add into whitelist
     */
-    function addBlacklistAddresses(address[] memory addresses) public isContractOwner {
+    function addblacklistedAddresses(address[] memory addresses) public isContractOwner {
         for (uint256 i=0; i < addresses.length; i++) {
-            blacklistAddresses[addresses[i]] = true;
+            blacklistedAddresses[addresses[i]] = true;
         }
-        emit addedBlacklistAddresses(addresses);
+        emit addedblacklistedAddresses(addresses);
     }
 
     /** 
     * @dev remove addresses from the blacklist
     * @param addresses a list of addressses to remove from blacklist
     */
-    function removeBlacklistAddresses(address[] memory addresses) public isContractOwner {
+    function removeblacklistedAddresses(address[] memory addresses) public isContractOwner {
         for (uint256 i=0; i < addresses.length; i++) {
-            blacklistAddresses[addresses[i]] = false;
+            blacklistedAddresses[addresses[i]] = false;
         }
-        emit removedBlacklistAddresses(addresses);
+        emit removedblacklistedAddresses(addresses);
     }
 
     /** 
     * @dev add additional addresses to the list of addresses that can fine users
     * @param addresses a list of addressses to add into list of addresses that can fine users
     */
-    function addFineAddresses(address[] memory addresses) public isContractOwner {
+    function addCanFineAddresses(address[] memory addresses) public isContractOwner {
         for (uint256 i=0; i < addresses.length; i++) {
-            fineAddresses[addresses[i]] = true;
+            canFineAddresses[addresses[i]] = true;
         }
-        emit addedFineAddresses(addresses);
+        emit addedCanFineAddresses(addresses);
     }
 
     /** 
     * @dev remove addresses to the list of addresses that can fine users
     * @param addresses a list of addressses to remove from list of addresses that can fine users
     */
-    function removeFineAddresses(address[] memory addresses) public isContractOwner {
+    function removeCanFineAddresses(address[] memory addresses) public isContractOwner {
         for (uint256 i=0; i < addresses.length; i++) {
-            fineAddresses[addresses[i]] = false;
+            canFineAddresses[addresses[i]] = false;
         }
-        emit removedFineAddresses(addresses);
+        emit removedCanFineAddresses(addresses);
     }
 
 
@@ -278,11 +284,11 @@ contract NUSToken {
         return whitelistAddresses;
     }
 
-    function getBlacklistAddresses() returns (address[]) {
-        return blacklistAddresses;
+    function getblacklistedAddresses() returns (address[]) {
+        return blacklistedAddresses;
     }
 
-    function getFineAddresses() returns (address[]) {
-        return fineAddresses;
+    function getCanFineAddresses() returns (address[]) {
+        return canFineAddresses;
     }
 }
