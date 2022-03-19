@@ -82,18 +82,7 @@ contract NUSToken {
         _;
     }
 
-    // CONSTRUCTORS
-
-    /** 
-    * @dev create new NUSToken instance, with no addresses
-    */
-    constructor() public {
-        ERC20 e = new ERC20();
-        erc20Contract = e;
-        owner = msg.sender;
-        whitelistAddresses[owner] = true;
-        canFineAddresses[owner] = true;
-    }
+    // CONSTRUCTOR
 
     /** 
     * @dev create new NUSToken instance, with addresses for whitelist, blacklist, addresses that can fine.
