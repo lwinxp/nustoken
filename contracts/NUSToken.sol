@@ -63,11 +63,20 @@ contract NUSToken {
         _;
     }
 
+    /**
+    // @dev checking if msg sender is eligible to blacklist users/students
+    */
+    modifier isCanBlacklistAddress() {
+        require(canBlacklistAddresses[msg.sender], "Not eligible to blacklist addressess");
+        _;
+    }
+
+
     /** 
     // @dev checking if msg sender is eligible to fine users/students, ie; in canFineAddresses
     */
-    modifier isFineAddress() {
-        require(whitelistAddresses[msg.sender], "Not an address that is allowed to fine");
+    modifier isCanFineAddresses() {
+        require(canFineAddresses[msg.sender], "Not an address that is allowed to fine");
         _;
     }
 
@@ -158,7 +167,7 @@ contract NUSToken {
     * @param from address of the user whose token is being fined
     * @param amt amount of tokens that is fined
     */
-    function fine(address from, uint256 amt) public isFineAddress {
+    function fine(address from, uint256 amt) public isCanFineAddresses {
         erc20Contract.transferFrom(from, address(this), amt);
         emit fined(from, amt);
     }
