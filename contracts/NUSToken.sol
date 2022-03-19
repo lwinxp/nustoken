@@ -140,7 +140,7 @@ contract NUSToken {
     *      list can do this
     * @param addr a list of addresses to add into whitelist
     */
-    function addToBlackList(address addr) public isCanBlacklistAddress {
+    function addToBlacklist(address addr) public isCanBlacklistAddress {
         blacklistedAddresses[addr] = true;
         emit modifiedAddressList(addr, typeOfAdd[1], true);
     }
