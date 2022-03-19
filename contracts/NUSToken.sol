@@ -13,8 +13,6 @@ contract NUSToken {
     4. blacklist addresses etc need to be public
     */
 
-    
-
     ERC20 erc20Contract;
     uint256 SUPPLY_TOKEN_LIMIT = (2**256) - 1; // supply of tokens
     uint256 SEMESTER_TOKEN_DISTRIBUTION_NUMBER = 10000; // no. of tokens to be given out every semester
@@ -103,8 +101,12 @@ contract NUSToken {
     }
 
     /** 
-    * @dev add additional addresses to whitelist to allow them to distrubute tokens
-    * @param addresses a list of addressses to add into whitelist
+    * @dev modify list (add or remove) with a given address
+    *      if remove then sets the address to false in mapping, 
+    *      if add then sets the address to true in mapping.
+    * @param addr a list of addressses to add into whitelist
+    * @param typeOfList type of list to modify (0: whitelist, 1: blacklist, 2:can blacklist, 3: can fine)
+    * @param addOrRemove to decide to add or remove from the list. true for add, false for remove.
     */
     function modifyAddList(address addr, uint256 typeOfList , bool addOrRemove) public isContractOwner {
         // require(typeOfAdd[typeOfList] != "0" , "Not a valid list type");
@@ -123,7 +125,7 @@ contract NUSToken {
         else{
             revert("Incorrect typeOfList");
         }
-        emit addedAddress( addr,  typeOfAdd[typeOfList]);
+        emit addedAddress(addr,  typeOfAdd[typeOfList]);
     }
 
 
@@ -167,24 +169,23 @@ contract NUSToken {
     /** 
     * @dev distributes tokens, this happens every semester
     *      only NUS should be able to do this.
-    * @param addresses addresses of all NUS students in school this semester
+    * @param addr address of an NUS students in school this semester
     */
     function semesterTokenDistribution(address addr) public isContractOwner {
 
-        giveTokens(addresses, SEMESTER_TOKEN_DISTRIBUTION_NUMBER);
+        giveTokens(addr, SEMESTER_TOKEN_DISTRIBUTION_NUMBER);
         emit semesterTokensDistributed(addr);
     }
 
     /** 
-    * @dev large scale retrieval of all tokens of all 
-    *      addresses in the list of given addresses, 
+    * @dev retrieval of all tokens of an address
     *      used for graduation of students or other similar events.
     *      only NUS should be able to do this.
-    * @param addresses addresses of all users whose tokens need to be retrieved.
+    * @param addr address of user whose tokens need to be retrieved.
     */
-    function retrieveAllTokens(address addresses) public isContractOwner {
-        takeTokens(addresses, this.balanceOf(addresses));
-        emit tokensRetrieved(addresses);
+    function retrieveAllTokens(address addr) public isContractOwner {
+        takeTokens(addr, this.balanceOf(addr));
+        emit tokensRetrieved(addr);
     }
 
 
