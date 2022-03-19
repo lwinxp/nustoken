@@ -30,28 +30,28 @@ contract NUSToken {
     // EVENTS
     
     // addition and removal of addresses into whitelist
-    event addedWhitelistAddresses(address addresses);
-    event removedWhitelistAddresses(address addresses);   
+    event addedWhitelistAddresses(address addr);
+    event removedWhitelistAddresses(address addr);   
 
     // addition and removal of addresses into blacklist
-    event addedblacklistedAddresses(address addresses);
-    event removedblacklistedAddresses(address addresses);   
+    event addedblacklistedAddresses(address addr);
+    event removedblacklistedAddresses(address addr);   
 
     // addition and removal of addresses into list of addresses that can fine
-    event addedCanFineAddresses(address addresses);
-    event removedCanFineAddresses(address addresses);
+    event addedCanFineAddresses(address addr);
+    event removedCanFineAddresses(address addr);
 
     // tokens has been given to the user
     event gaveTokens(address to, uint256 amt);
 
     // tokens distributed at the start of the semester
-    event semesterTokensDistributed(address addresses);
+    event semesterTokensDistributed(address addr);
 
     // tokens has been taken from the user 
     event tookTokens(address from, uint256 amt);
 
     // all tokens taken from the given addresses
-    event tokensRetrieved(address addresses);
+    event tokensRetrieved(address addr);
 
     // user is fined
     event fined(address from, uint256 amt);
@@ -113,55 +113,55 @@ contract NUSToken {
     * @dev add additional addresses to whitelist to allow them to distrubute tokens
     * @param addresses a list of addressses to add into whitelist
     */
-    function addWhitelistAddresses(address  addresses) public isContractOwner {
-        whitelistAddresses[addresses] = true;
-        emit addedWhitelistAddresses(addresses);
+    function addWhitelistAddresses(address addr) public isContractOwner {
+        whitelistAddresses[addr] = true;
+        emit addedWhitelistAddresses(addr);
     }
 
     /** 
     * @dev remove addresses from the whitelist
     * @param addresses a list of addressses to remove from whitelist
     */
-    function removeWhitelistAddresses(address addresses) public isContractOwner {
-        whitelistAddresses[addresses] = true;
-        emit removedWhitelistAddresses(addresses);
+    function removeWhitelistAddresses(address addr) public isContractOwner {
+        whitelistAddresses[addr] = true;
+        emit removedWhitelistAddresses(addr);
     }
 
     /** 
     * @dev add additional addresses to the blacklist
     * @param addresses a list of addressses to add into whitelist
     */
-    function addblacklistedAddresses(address addresses) public isContractOwner {
-        blacklistedAddresses[addresses] = true;
-        emit addedblacklistedAddresses(addresses);
+    function addblacklistedAddresses(address addr) public isContractOwner {
+        blacklistedAddresses[addr] = true;
+        emit addedblacklistedAddresses(addr);
     }
 
     /** 
     * @dev remove addresses from the blacklist
     * @param addresses a list of addressses to remove from blacklist
     */
-    function removeblacklistedAddresses(address addresses) public isContractOwner {
-        blacklistedAddresses[addresses] = true;
-        emit removedblacklistedAddresses(addresses);
+    function removeblacklistedAddresses(address addr) public isContractOwner {
+        blacklistedAddresses[addr] = true;
+        emit removedblacklistedAddresses(addr);
     }
 
     /** 
     * @dev add additional addresses to the list of addresses that can fine users
     * @param addresses a list of addressses to add into list of addresses that can fine users
     */
-    function addCanFineAddresses(address addresses) public isContractOwner {
-        canFineAddresses[addresses] = true;
-        emit addedCanFineAddresses(addresses);
+    function addCanFineAddresses(address addr) public isContractOwner {
+        canFineAddresses[addr] = true;
+        emit addedCanFineAddresses(addr);
     }
 
     /** 
     * @dev remove addresses to the list of addresses that can fine users
     * @param addresses a list of addressses to remove from list of addresses that can fine users
     */
-    function removeCanFineAddresses(address addresses) public isContractOwner {
+    function removeCanFineAddresses(address addr) public isContractOwner {
 
-        canFineAddresses[addresses] = false;
-        emit removedCanFineAddresses(addresses);
+        canFineAddresses[addr] = false;
+        emit removedCanFineAddresses(addr);
     }
 
 
@@ -207,10 +207,10 @@ contract NUSToken {
     *      only NUS should be able to do this.
     * @param addresses addresses of all NUS students in school this semester
     */
-    function semesterTokenDistribution(address addresses) public isContractOwner {
+    function semesterTokenDistribution(address addr) public isContractOwner {
 
         giveTokens(addresses, SEMESTER_TOKEN_DISTRIBUTION_NUMBER);
-        emit semesterTokensDistributed(addresses);
+        emit semesterTokensDistributed(addr);
     }
 
     /** 
@@ -220,9 +220,9 @@ contract NUSToken {
     *      only NUS should be able to do this.
     * @param addresses addresses of all users whose tokens need to be retrieved.
     */
-    function retrieveAllTokens(address addresses) public isContractOwner {
-        takeTokens(addresses, this.balanceOf(addresses));
-        emit tokensRetrieved(addresses);
+    function retrieveAllTokens(address addr) public isContractOwner {
+        takeTokens(addresses, this.balanceOf(addr));
+        emit tokensRetrieved(addr);
     }
 
 
