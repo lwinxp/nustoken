@@ -135,14 +135,15 @@ contract NUSToken {
     }
 
     /** 
-    * @dev add an address to the blacklist,
+    * @dev add/remove an address to/from the blacklist,
     *      only addresses in the CanBlacklistAddresses 
-    *      list can do this
+    *      list can do this. 
     * @param addr a list of addresses to add into whitelist
+    * @param addOrRemove to add set as true, to remove set as false
     */
-    function addToBlacklist(address addr) public isCanBlacklistAddress {
-        blacklistedAddresses[addr] = true;
-        emit modifiedAddressList(addr, typeOfAdd[1], true);
+    function modifyBlacklist(address addr, bool addOrRemove) public isCanBlacklistAddress {
+        blacklistedAddresses[addr] = addOrRemove;
+        emit modifiedAddressList(addr, typeOfAdd[1], addOrRemove);
     }
 
     /** 
