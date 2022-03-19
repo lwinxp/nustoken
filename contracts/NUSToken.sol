@@ -63,6 +63,7 @@ contract NUSToken {
     */
     modifier isContractOwner() { 
         require(msg.sender == owner, "Not owner of contract");
+        _;
     }
 
     /**
@@ -70,6 +71,7 @@ contract NUSToken {
     */
     modifier isWhitelistAddress() {
         require(whitelistAddresses[msg.sender], "Not a whitelisted address");
+        _;
     }
 
     /** 
@@ -77,6 +79,7 @@ contract NUSToken {
     */
     modifier isFineAddress() {
         require(whitelistAddresses[msg.sender], "Not an address that is allowed to fine");
+        _;
     }
 
     // CONSTRUCTORS
@@ -94,27 +97,27 @@ contract NUSToken {
 
     /** 
     * @dev create new NUSToken instance, with addresses for whitelist, blacklist, addresses that can fine.
-    * @param whitelistAddresses a list of addresses in the whitelist
-    * @param blacklistedAddresses a list of addresses in the blacklist
-    * @param canFineAddresses a list of addresses in the list of addresses that can fine
+    * @param whitelistAddrs a list of addresses in the whitelist
+    * @param blacklistedAddrs a list of addresses in the blacklist
+    * @param canFineAddrs a list of addresses in the list of addresses that can fine
     */
-    constructor(address[] memory whitelistAddresses, address[] memory blacklistedAddresses, address[] memory canFineAddresses) public {
+    constructor(address[] memory whitelistAddrs, address[] memory blacklistedAddrs, address[] memory canFineAddrs) public {
         ERC20 e = new ERC20();
         erc20Contract = e;
         owner = msg.sender;
 
         whitelistAddresses[owner] = true;
-        for (uint256 i=0; i < whitelistAddresses.length; i++) {
-            whitelistAddresses[whitelistAddresses[i]] = true;
+        for (uint256 i=0; i < whitelistAddrs.length; i++) {
+            whitelistAddresses[whitelistAddrs[i]] = true;
         }
 
-        for (uint256 i=0; i < blacklistedAddresses.length; i++) {
-            blacklistedAddresses[blacklistedAddresses[i]] = true;
+        for (uint256 i=0; i < blacklistedAddrs.length; i++) {
+            blacklistedAddresses[blacklistedAddrs[i]] = true;
         }
 
         canFineAddresses[owner] = true;
-        for (uint256 i=0; i < canFineAddresses.length; i++) {
-            canFineAddresses[canFineAddresses[i]] = true;
+        for (uint256 i=0; i < canFineAddrs.length; i++) {
+            canFineAddresses[canFineAddrs[i]] = true;
         }
 
     }
@@ -239,7 +242,7 @@ contract NUSToken {
     *      only NUS should be able to do this.
     * @param addresses addresses of all NUS students in school this semester
     */
-    function semesterTokenDistribution(addresses[] memory addresses) public isContractOwner {
+    function semesterTokenDistribution(address[] memory addresses) public isContractOwner {
         for (uint256 i=0; i<addresses.length; i++) {
             giveTokens(addresses[i], SEMESTER_TOKEN_DISTRIBUTION_NUMBER);
         }
@@ -253,7 +256,7 @@ contract NUSToken {
     *      only NUS should be able to do this.
     * @param addresses addresses of all users whose tokens need to be retrieved.
     */
-    function retrieveAllTokens(addresses[] memory addresses) public isContractOwner {
+    function retrieveAllTokens(address[] memory addresses) public isContractOwner {
         for (uint256 i=0; i<addresses.length; i++) {
             takeTokens(addresses[i], this.balanceOf(addresses[i]));
         }
@@ -268,27 +271,27 @@ contract NUSToken {
 
     // GETTERS
 
-    function getTotalSupply() returns (uint256) {
+    function getTotalSupply() public returns (uint256) {
         return SUPPLY_TOKEN_LIMIT;
     }
 
-    function getSemesterTokenDistributionNumber() returns (uint256) {
+    function getSemesterTokenDistributionNumber() public returns (uint256) {
         return SEMESTER_TOKEN_DISTRIBUTION_NUMBER;
     }
 
-    function getOwner() returns (address) {
+    function getOwner() public returns (address) {
         return owner;
     }
 
-    function getWhitelistAddresses() returns (address[]) {
+    function getWhitelistAddresses() public returns (address[] memory) {
         return whitelistAddresses;
     }
 
-    function getblacklistedAddresses() returns (address[]) {
+    function getblacklistedAddresses() public returns (address[] memory) {
         return blacklistedAddresses;
     }
 
-    function getCanFineAddresses() returns (address[]) {
+    function getCanFineAddresses() public returns (address[] memory) {
         return canFineAddresses;
     }
 }
