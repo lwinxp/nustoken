@@ -24,33 +24,34 @@ contract NUSToken {
     mapping(address => bool) canBlacklistAddresses; // addresses that can blacklist other addresses
     mapping(address => bool) canFineAddresses; // addresses that can fine users/students (eg; NUS, library)
     address public owner; // contract owner should be NUS, since NUS deploys this contract
+    bool internal tokensMinted;
 
 
     // EVENTS
     
     // addition and removal of addresses into whitelist
-    event addedWhitelistAddresses(address[] addresses);
-    event removedWhitelistAddresses(address[] addresses);   
+    event addedWhitelistAddresses(address addresses);
+    event removedWhitelistAddresses(address addresses);   
 
     // addition and removal of addresses into blacklist
-    event addedblacklistedAddresses(address[] addresses);
-    event removedblacklistedAddresses(address[] addresses);   
+    event addedblacklistedAddresses(address addresses);
+    event removedblacklistedAddresses(address addresses);   
 
     // addition and removal of addresses into list of addresses that can fine
-    event addedCanFineAddresses(address[] addresses);
-    event removedCanFineAddresses(address[] addresses);
+    event addedCanFineAddresses(address addresses);
+    event removedCanFineAddresses(address addresses);
 
     // tokens has been given to the user
     event gaveTokens(address to, uint256 amt);
 
     // tokens distributed at the start of the semester
-    event semesterTokensDistributed(address[] addresses);
+    event semesterTokensDistributed(address addresses);
 
     // tokens has been taken from the user 
     event tookTokens(address from, uint256 amt);
 
     // all tokens taken from the given addresses
-    event tokensRetrieved(address[] addresses);
+    event tokensRetrieved(address addresses);
 
     // user is fined
     event fined(address from, uint256 amt);
@@ -85,41 +86,15 @@ contract NUSToken {
 
     /** 
     * @dev create new NUSToken instance, with addresses for whitelist, blacklist, addresses that can fine.
-    * @param whitelistAddrs a list of addresses in the whitelist
-    * @param blacklistedAddrs a list of addresses in the blacklist
-    * @param canBlacklistAddrs a list of addresses that can blacklist other addresses
-    * @param canFineAddrs a list of addresses in the list of addresses that can fine
+
     */
-    constructor(
-        address[] memory whitelistAddrs, 
-        address[] memory blacklistedAddrs, 
-        address[] memory canBlacklistAddrs, 
-        address[] memory canFineAddrs
-        ) public {
+    constructor() public {
         ERC20 e = new ERC20();
+        e.mint(address(this), SUPPLY_TOKEN_LIMIT);
         erc20Contract = e;
         owner = msg.sender;
-
-        erc20Contract.mint(address(this), SUPPLY_TOKEN_LIMIT);
-
         whitelistAddresses[owner] = true;
-        for (uint256 i=0; i < whitelistAddrs.length; i++) {
-            whitelistAddresses[whitelistAddrs[i]] = true;
-        }
-
-        for (uint256 i=0; i < blacklistedAddrs.length; i++) {
-            blacklistedAddresses[blacklistedAddrs[i]] = true;
-        }
-
-        canBlacklistAddresses[owner] = true;
-        for (uint256 i=0; i < canBlacklistAddrs.length; i++) {
-            canBlacklistAddresses[canBlacklistAddrs[i]] = true;
-        }
-
         canFineAddresses[owner] = true;
-        for (uint256 i=0; i < canFineAddrs.length; i++) {
-            canFineAddresses[canFineAddrs[i]] = true;
-        }
 
     }
 
@@ -134,18 +109,12 @@ contract NUSToken {
         return credit;
     }
 
-    function getContractAddress() public view returns(address) {
-        return address(this);
-    }
-
     /** 
     * @dev add additional addresses to whitelist to allow them to distrubute tokens
     * @param addresses a list of addressses to add into whitelist
     */
-    function addWhitelistAddresses(address[] memory addresses) public isContractOwner {
-        for (uint256 i=0; i < addresses.length; i++) {
-            whitelistAddresses[addresses[i]] = true;
-        }
+    function addWhitelistAddresses(address  addresses) public isContractOwner {
+        whitelistAddresses[addresses] = true;
         emit addedWhitelistAddresses(addresses);
     }
 
@@ -153,10 +122,8 @@ contract NUSToken {
     * @dev remove addresses from the whitelist
     * @param addresses a list of addressses to remove from whitelist
     */
-    function removeWhitelistAddresses(address[] memory addresses) public isContractOwner {
-        for (uint256 i=0; i < addresses.length; i++) {
-            whitelistAddresses[addresses[i]] = false;
-        }
+    function removeWhitelistAddresses(address addresses) public isContractOwner {
+        whitelistAddresses[addresses] = true;
         emit removedWhitelistAddresses(addresses);
     }
 
@@ -164,10 +131,8 @@ contract NUSToken {
     * @dev add additional addresses to the blacklist
     * @param addresses a list of addressses to add into whitelist
     */
-    function addblacklistedAddresses(address[] memory addresses) public isContractOwner {
-        for (uint256 i=0; i < addresses.length; i++) {
-            blacklistedAddresses[addresses[i]] = true;
-        }
+    function addblacklistedAddresses(address addresses) public isContractOwner {
+        blacklistedAddresses[addresses] = true;
         emit addedblacklistedAddresses(addresses);
     }
 
@@ -175,10 +140,8 @@ contract NUSToken {
     * @dev remove addresses from the blacklist
     * @param addresses a list of addressses to remove from blacklist
     */
-    function removeblacklistedAddresses(address[] memory addresses) public isContractOwner {
-        for (uint256 i=0; i < addresses.length; i++) {
-            blacklistedAddresses[addresses[i]] = false;
-        }
+    function removeblacklistedAddresses(address addresses) public isContractOwner {
+        blacklistedAddresses[addresses] = true;
         emit removedblacklistedAddresses(addresses);
     }
 
@@ -186,10 +149,8 @@ contract NUSToken {
     * @dev add additional addresses to the list of addresses that can fine users
     * @param addresses a list of addressses to add into list of addresses that can fine users
     */
-    function addCanFineAddresses(address[] memory addresses) public isContractOwner {
-        for (uint256 i=0; i < addresses.length; i++) {
-            canFineAddresses[addresses[i]] = true;
-        }
+    function addCanFineAddresses(address addresses) public isContractOwner {
+        canFineAddresses[addresses] = true;
         emit addedCanFineAddresses(addresses);
     }
 
@@ -197,10 +158,9 @@ contract NUSToken {
     * @dev remove addresses to the list of addresses that can fine users
     * @param addresses a list of addressses to remove from list of addresses that can fine users
     */
-    function removeCanFineAddresses(address[] memory addresses) public isContractOwner {
-        for (uint256 i=0; i < addresses.length; i++) {
-            canFineAddresses[addresses[i]] = false;
-        }
+    function removeCanFineAddresses(address addresses) public isContractOwner {
+
+        canFineAddresses[addresses] = false;
         emit removedCanFineAddresses(addresses);
     }
 
@@ -247,10 +207,9 @@ contract NUSToken {
     *      only NUS should be able to do this.
     * @param addresses addresses of all NUS students in school this semester
     */
-    function semesterTokenDistribution(address[] memory addresses) public isContractOwner {
-        for (uint256 i=0; i<addresses.length; i++) {
-            giveTokens(addresses[i], SEMESTER_TOKEN_DISTRIBUTION_NUMBER);
-        }
+    function semesterTokenDistribution(address addresses) public isContractOwner {
+
+        giveTokens(addresses, SEMESTER_TOKEN_DISTRIBUTION_NUMBER);
         emit semesterTokensDistributed(addresses);
     }
 
@@ -261,10 +220,8 @@ contract NUSToken {
     *      only NUS should be able to do this.
     * @param addresses addresses of all users whose tokens need to be retrieved.
     */
-    function retrieveAllTokens(address[] memory addresses) public isContractOwner {
-        for (uint256 i=0; i<addresses.length; i++) {
-            takeTokens(addresses[i], this.balanceOf(addresses[i]));
-        }
+    function retrieveAllTokens(address addresses) public isContractOwner {
+        takeTokens(addresses, this.balanceOf(addresses));
         emit tokensRetrieved(addresses);
     }
 
@@ -288,15 +245,15 @@ contract NUSToken {
         return owner;
     }
 
-    function isInWhitelistAddresses(address addr) public view returns (bool) {
+    function isAddressInWhitelistAddresses(address addr) view public returns (bool) {
         return whitelistAddresses[addr];
     }
 
-    function isInBlacklistedAddresses(address addr) public view returns (bool) {
+    function isAddressInBlacklistedAddresses(address addr) view public returns (bool) {
         return blacklistedAddresses[addr];
     }
 
-    function isInCanFineAddresses(address addr) public view returns (bool) {
+    function isAddressInCanFineAddresses(address addr) view public returns (bool) {
         return canFineAddresses[addr];
     }
 }
