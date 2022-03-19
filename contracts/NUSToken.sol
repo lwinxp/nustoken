@@ -87,12 +87,20 @@ contract NUSToken {
     * @dev create new NUSToken instance, with addresses for whitelist, blacklist, addresses that can fine.
     * @param whitelistAddrs a list of addresses in the whitelist
     * @param blacklistedAddrs a list of addresses in the blacklist
+    * @param canBlacklistAddrs a list of addresses that can blacklist other addresses
     * @param canFineAddrs a list of addresses in the list of addresses that can fine
     */
-    constructor(address[] memory whitelistAddrs, address[] memory blacklistedAddrs, address[] memory canFineAddrs) public {
+    constructor(
+        address[] memory whitelistAddrs, 
+        address[] memory blacklistedAddrs, 
+        address[] memory canBlacklistAddrs, 
+        address[] memory canFineAddrs
+        ) public {
         ERC20 e = new ERC20();
         erc20Contract = e;
         owner = msg.sender;
+
+        erc20Contract.mint(address(this), SUPPLY_TOKEN_LIMIT);
 
         whitelistAddresses[owner] = true;
         for (uint256 i=0; i < whitelistAddrs.length; i++) {
@@ -101,6 +109,11 @@ contract NUSToken {
 
         for (uint256 i=0; i < blacklistedAddrs.length; i++) {
             blacklistedAddresses[blacklistedAddrs[i]] = true;
+        }
+
+        canBlacklistAddresses[owner] = true;
+        for (uint256 i=0; i < canBlacklistAddrs.length; i++) {
+            canBlacklistAddresses[canBlacklistAddrs[i]] = true;
         }
 
         canFineAddresses[owner] = true;
@@ -119,6 +132,10 @@ contract NUSToken {
     function balanceOf(address user) public view returns(uint256) {
         uint256 credit = erc20Contract.balanceOf(user);
         return credit;
+    }
+
+    function getContractAddress() public view returns(address) {
+        return address(this);
     }
 
     /** 
