@@ -8,7 +8,6 @@ contract NUSToken {
     TO DO LIST:
     1. figure out how the approval system would work, not sure if there is a way to auto-approve token usage for any given amt
         - now you have to approve for a fixed amount. There should be a "limitless" approval for the amount of tokens used 
-
     2. need to implement mint function to create all the tokens initially. can create a minted bool to check if already minted
     3. need to get canBlacklistAddresses modifiers and list
     4. blacklist addresses etc need to be public
@@ -117,7 +116,7 @@ contract NUSToken {
     * @dev get the number of tokens for the specified user
     * @param user address of user to check number of tokens
     */
-    function balanceOf(address user) public returns(uint256) {
+    function balanceOf(address user) public view returns(uint256) {
         uint256 credit = erc20Contract.balanceOf(user);
         return credit;
     }
@@ -260,27 +259,27 @@ contract NUSToken {
 
     // GETTERS
 
-    function getTotalSupply() public returns (uint256) {
+    function getTotalSupply() public view returns (uint256) {
         return SUPPLY_TOKEN_LIMIT;
     }
 
-    function getSemesterTokenDistributionNumber() public returns (uint256) {
+    function getSemesterTokenDistributionNumber() public view returns (uint256) {
         return SEMESTER_TOKEN_DISTRIBUTION_NUMBER;
     }
 
-    function getOwner() public returns (address) {
+    function getOwner() public view returns (address) {
         return owner;
     }
 
-    function getWhitelistAddresses() public returns (address[] memory) {
-        return whitelistAddresses;
+    function isAddressInWhitelistAddresses(address addr) view public returns (bool) {
+        return whitelistAddresses[addr];
     }
 
-    function getblacklistedAddresses() public returns (address[] memory) {
-        return blacklistedAddresses;
+    function isAddressInBlacklistedAddresses(address addr) view public returns (bool) {
+        return blacklistedAddresses[addr];
     }
 
-    function getCanFineAddresses() public returns (address[] memory) {
-        return canFineAddresses;
+    function isAddressInCanFineAddresses(address addr) view public returns (bool) {
+        return canFineAddresses[addr];
     }
 }
