@@ -85,9 +85,9 @@ contract NUSToken {
     * @dev create new NUSToken instance, with addresses for whitelist, blacklist, addresses that can fine.
     */
     constructor() public {
-        ERC20 erc20Contract = new ERC20();
-        erc20Contract.mint(address(this), SUPPLY_TOKEN_LIMIT);
-        // erc20Contract = e;
+        ERC20 e = new ERC20();
+        erc20Contract = e;
+        erc20Contract.mint(address(this), SUPPLY_TOKEN_LIMIT); // mints all tokens at once
         owner = msg.sender;
         whitelistAddresses[owner] = true;
         canFineAddresses[owner] = true;
@@ -139,7 +139,7 @@ contract NUSToken {
     *      list can do this
     * @param addr a list of addresses to add into whitelist
     */
-    function addToBlackList(address addr) public isCanBlacklist {
+    function addToBlackList(address addr) public isCanBlacklistAddress {
         blacklistedAddresses[addr] = true;
         emit modifiedAddressList(addr, typeOfAdd[1], true);
     }
