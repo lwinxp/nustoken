@@ -271,15 +271,15 @@ contract NUSToken {
         return owner;
     }
 
-    function isAddressInWhitelistAddresses(address addr) view public returns (bool) {
+    function isInWhitelistAddresses(address addr) view public returns (bool) {
         return whitelistAddresses[addr];
     }
 
-    function isAddressInBlacklistedAddresses(address addr) view public returns (bool) {
+    function isInBlacklistedAddresses(address addr) view public returns (bool) {
         return blacklistedAddresses[addr];
     }
 
-    function isAddressInCanFineAddresses(address addr) view public returns (bool) {
+    function isInCanFineAddresses(address addr) view public returns (bool) {
         return canFineAddresses[addr];
     }
 }
