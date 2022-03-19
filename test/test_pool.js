@@ -3,75 +3,160 @@ const truffleAssert = require('truffle-assertions');
 var assert = require('assert');
 
 
-var ERC20 = artifacts.require("../contracts/ERC20.sol");
-var Pool = artifacts.require("../contracts/Pool.sol");
+var NUSToken = artifacts.require("NUSToken");
+var NUSModReg = artifacts.require("NUSModReg");
 
-contract('Pool', function(accounts) {
+let mod1 = "0x6373313031300000000000000000000000000000000000000000000000000000";
+let mod2 = "0x6d61313130317300000000000000000000000000000000000000000000000000";
+
+let modQouta1 = 1;
+let modQouta2 = 2;
+
+contract('NUSModReg', function(accounts) {
     before(async () => {
-        erc20instance = await ERC20.deployed();
-        poolInstance = await Pool.deployed();
+        NUSTokenInstance = await NUSToken.deployed();
+        NUSModRegInstance = await NUSModReg.deployed();
     });
 
-    it('Test Get PTs', async() => {
-        let getPT = await poolInstance.getPT({from:accounts[1], value: 1E18});
-        truffleAssert.eventEmitted(getPT, "GetPT");
-        let checkPT = await poolInstance.getTokenBalance.call(accounts[1]);
-        assert.strictEqual(checkPT.toNumber(), 100, "PT not deployed correctly");
+    console.log("Testing NUS ModReg");
+
+    it('Give Tokens', async() =>{
+        await NUSTokenInstance.giveTokens(accounts[1],100);
+        await NUSTokenInstance.giveTokens(accounts[2],200);
         
-        let getPT2 = await poolInstance.getPT({from:accounts[2], value: 1E18});
-        truffleAssert.eventEmitted(getPT2, "GetPT");
-        let checkPT2 = await poolInstance.getTokenBalance.call(accounts[2]);
-        assert.strictEqual(checkPT2.toNumber(), 100, "PT not deployed correctly");
+        let account1Balance = await NUSTokenInstance.balanceOf(accounts[1]);
+        let account2Balance = await NUSTokenInstance.balanceOf(accounts[2]);
 
-    });
+        assert.strictEqual(
+            account1Balance.toNumber(),
+            100,
+            "Failed to give Tokens"
+        )
 
-    it('Test Send Tokens', async() => {
-        let sendToken = await poolInstance.sendTokens(50, {from:accounts[1]});
-        truffleAssert.eventEmitted(sendToken, "TokenSent");
-
-        let sendToken2 = await poolInstance.sendTokens(40, {from:accounts[2]});
-        truffleAssert.eventEmitted(sendToken2, "TokenSent");
-
-        let tpool = await poolInstance.getTotalPool.call();
-        assert.strictEqual(tpool.toNumber(), 90, "TotalPool doesn't align");
-    });
-
-    it('Check Voter List length', async () => {
-        let vlistlen = await poolInstance.getVoterListLength.call();
-        assert.strictEqual(vlistlen.toNumber(), 2);
-    });
-
-
-    it('Test Voting', async() => {
-        let vote_acct2 = await poolInstance.vote(accounts[2], {from: accounts[1]});
-        truffleAssert.eventEmitted(vote_acct2, "Voted");
-
-        let checkVote = await poolInstance.getVote.call(accounts[1]);
-        assert.strictEqual(checkVote, accounts[2], "vote not working");
-
-    });
-
-    it('Test that voters cannot vote twice', async() => {
-        await truffleAssert.reverts(poolInstance.vote(accounts[2], {from: accounts[1]}), "Can't vote twice!");
+        assert.strictEqual(
+            account2Balance.toNumber(),
+            200,
+            "Failed to give Tokens"
+        )
     })
 
-    it('Check candidateVotes', async() => {
-        let vres = await poolInstance.getcandidateVotes.call(accounts[2]);
-        assert.strictEqual(vres.toNumber(), 50, "candidateVotes not working");
+    it('Register Modules', async() =>{
+        
+        await NUSModRegInstance.registerModules([mod1,mod2],[modQouta1,modQouta2]);
+        
+        let modQouta1_ = await NUSModRegInstance.getModuleQouta(mod1);
+        let modQouta2_ = await NUSModRegInstance.getModuleQouta(mod2);
+        
+        // console.log(modQouta1_);
+        assert.strictEqual(
+            modQouta1,
+            modQouta1_.toNumber(),
+            "Failed to map Qouta"
+        )
+
+        assert.strictEqual(
+            modQouta2,
+            modQouta2_.toNumber(),
+            "Failed to map Qouta"
+        )
+        
     })
 
-    it('Ensure non-chairs cannot end vote', async() => {
-        await truffleAssert.reverts(poolInstance.endVoting({from:accounts[1]}), "Only chairperson can end voting")
+    it('Duplicate Modules Set', async() =>{
+        let dupMod1 = "0x6373313031300000000000000000000000000000000000000000000000000000";
+        let dupMod1Qouta1 = 1;
+        
+        await truffleAssert.reverts(NUSModRegInstance.registerModules(
+            [dupMod1],[dupMod1Qouta1]),
+            "Module Code has already been set"
+        );
     })
 
-    it('Test VoteWon', async() => {
-        //Please work on this test
-    });
+    it('Bidding Works', async() =>{
+        await NUSModRegInstance.bid(mod1, {from: accounts[1]});
+        await NUSModRegInstance.bid(mod1, {from: accounts[2]});
 
+        await NUSModRegInstance.bid(mod2, {from: accounts[1]});
+        await NUSModRegInstance.bid(mod2, {from: accounts[2]});
 
-    it('Test VoteDrawn', async() => {
-        //Please work on this test
+        let bidModsArr1 = await NUSModRegInstance.getMyBidModules({from: accounts[1]});
+        let bidModsArr2 = await NUSModRegInstance.getMyBidModules({from: accounts[2]});
+
+        assert.strictEqual(
+            bidModsArr1[0],
+            mod1,
+            "Failed to add Mods"
+        )
+
+        assert.strictEqual(
+            bidModsArr1[1],
+            mod2,
+            "Failed to add Mods"
+        )
+
+        assert.strictEqual(
+            bidModsArr2[0],
+            mod1,
+            "Failed to add Mods"
+        )
+
+        assert.strictEqual(
+            bidModsArr2[1],
+            mod2,
+            "Failed to add Mods"
+        )
     })
 
+    it('Multiple Bidding Works', async() =>{
+        await NUSModRegInstance.bid(mod1, {from: accounts[1]});
+
+        let bidModsArr1 = await NUSModRegInstance.getMyBidModules({from: accounts[1]});
+
+        assert.strictEqual(
+            bidModsArr1.length,
+            2,
+            "Failed to handle Duplicates"
+        )
+
+    })
+
+    it('Allocation Works', async() =>{
+        await NUSModRegInstance.allocate();
+
+        let modAllocation1 = await NUSModRegInstance.getMyAllocation({from: accounts[1]});
+        let modAllocation2 = await NUSModRegInstance.getMyAllocation({from: accounts[2]});
+
+        assert.strictEqual(
+            modAllocation1[0],
+            mod2,
+            "Failed to Allocate Mods"
+        )
+
+        assert.strictEqual(
+            modAllocation1[1],
+            undefined,
+            "Failed to give mod to student with more tokens"
+        )
+
+        assert.strictEqual(
+            modAllocation2[0],
+            mod1,
+            "Failed to Allocate Mods"
+        )
+
+        assert.strictEqual(
+            modAllocation2[1],
+            mod2,
+            "Failed to Allocate Mods"
+        )
+
+    })
+    // TODO @Jin-Jiayu after we have a way to reset the allocation
+    // it('Allocation Works with same Tokens', async() =>{
+    
+
+    // })
+
+    
     
 });
