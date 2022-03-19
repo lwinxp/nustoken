@@ -29,19 +29,19 @@ contract NUSToken {
     // EVENTS
     
     // addition and removal of addresses into whitelist
-    event addedAddresses(address addresses, string typeOfAddress);
+    event addedAddress(address addr, string typeOfAddress);
 
     // tokens has been given to the user
     event gaveTokens(address to, uint256 amt);
 
     // tokens distributed at the start of the semester
-    event semesterTokensDistributed(address addresses);
+    event semesterTokensDistributed(address addr);
 
     // tokens has been taken from the user 
     event tookTokens(address from, uint256 amt);
 
     // all tokens taken from the given addresses
-    event tokensRetrieved(address addresses);
+    event tokensRetrieved(address addr);
 
     // user is fined
     event fined(address from, uint256 amt);
@@ -106,24 +106,24 @@ contract NUSToken {
     * @dev add additional addresses to whitelist to allow them to distrubute tokens
     * @param addresses a list of addressses to add into whitelist
     */
-    function modifyAddList(address addresses, uint256 typeOfList , bool addOrRemove) public isContractOwner {
-        // require(typeOfAdd[typeOfList] != "0" , "Not a vlaid list type");
+    function modifyAddList(address addr, uint256 typeOfList , bool addOrRemove) public isContractOwner {
+        // require(typeOfAdd[typeOfList] != "0" , "Not a valid list type");
         if (typeOfList == 0){
-            whitelistAddresses[addresses] = addOrRemove;
+            whitelistAddresses[addr] = addOrRemove;
         }
         else if (typeOfList == 1){
-            blacklistedAddresses[addresses] = addOrRemove;
+            blacklistedAddresses[addr] = addOrRemove;
         }
         else if (typeOfList == 2){
-            canBlacklistAddresses[addresses] = addOrRemove;
+            canBlacklistAddresses[addr] = addOrRemove;
         }
         else if (typeOfList == 3){
-            canFineAddresses[addresses] = addOrRemove;
+            canFineAddresses[addr] = addOrRemove;
         }
         else{
             revert("Incorrect typeOfList");
         }
-        emit addedAddresses( addresses,  typeOfAdd[typeOfList]);
+        emit addedAddress( addr,  typeOfAdd[typeOfList]);
     }
 
 
@@ -169,10 +169,10 @@ contract NUSToken {
     *      only NUS should be able to do this.
     * @param addresses addresses of all NUS students in school this semester
     */
-    function semesterTokenDistribution(address addresses) public isContractOwner {
+    function semesterTokenDistribution(address addr) public isContractOwner {
 
         giveTokens(addresses, SEMESTER_TOKEN_DISTRIBUTION_NUMBER);
-        emit semesterTokensDistributed(addresses);
+        emit semesterTokensDistributed(addr);
     }
 
     /** 
