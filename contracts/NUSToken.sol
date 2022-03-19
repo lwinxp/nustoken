@@ -28,7 +28,7 @@ contract NUSToken {
     
     // addition or removal of an address
     // bool addOrRemove: addition: true, removal: false
-    event addedAddress(address addr, string typeOfAddress, bool addOrRemove);
+    event modifiedAddressList(address addr, string typeOfAddress, bool addOrRemove);
 
     // tokens has been given to the user
     event gaveTokens(address to, uint256 amt);
@@ -122,7 +122,7 @@ contract NUSToken {
         } else {
             revert("Incorrect typeOfList");
         }
-        emit addedAddress(addr,  typeOfAdd[typeOfList], addOrRemove);
+        emit modifiedAddressList(addr, typeOfAdd[typeOfList], addOrRemove);
     }
 
 
