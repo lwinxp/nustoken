@@ -27,7 +27,8 @@ contract NUSToken {
     // EVENTS
     
     // addition or removal of an address
-    event addedAddress(address addr, string typeOfAddress);
+    // bool addOrRemove: addition: true, removal: false
+    event addedAddress(address addr, string typeOfAddress, bool addOrRemove);
 
     // tokens has been given to the user
     event gaveTokens(address to, uint256 amt);
@@ -108,24 +109,20 @@ contract NUSToken {
     * @param typeOfList type of list to modify (0: whitelist, 1: blacklist, 2:can blacklist, 3: can fine)
     * @param addOrRemove to decide to add or remove from the list. true for add, false for remove.
     */
-    function modifyAddList(address addr, uint256 typeOfList , bool addOrRemove) public isContractOwner {
+    function modifyList(address addr, uint256 typeOfList , bool addOrRemove) public isContractOwner {
         // require(typeOfAdd[typeOfList] != "0" , "Not a valid list type");
         if (typeOfList == 0){
             whitelistAddresses[addr] = addOrRemove;
-        }
-        else if (typeOfList == 1){
+        } else if (typeOfList == 1){
             blacklistedAddresses[addr] = addOrRemove;
-        }
-        else if (typeOfList == 2){
+        } else if (typeOfList == 2){
             canBlacklistAddresses[addr] = addOrRemove;
-        }
-        else if (typeOfList == 3){
+        } else if (typeOfList == 3){
             canFineAddresses[addr] = addOrRemove;
-        }
-        else{
+        } else {
             revert("Incorrect typeOfList");
         }
-        emit addedAddress(addr,  typeOfAdd[typeOfList]);
+        emit addedAddress(addr,  typeOfAdd[typeOfList], addOrRemove);
     }
 
 
