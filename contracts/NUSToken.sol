@@ -6,11 +6,7 @@ contract NUSToken {
 
     /**
     TO DO LIST:
-    1. figure out how the approval system would work, not sure if there is a way to auto-approve token usage for any given amt
-        - now you have to approve for a fixed amount. There should be a "limitless" approval for the amount of tokens used 
-    2. need to implement mint function to create all the tokens initially. can create a minted bool to check if already minted
-    3. need to get canBlacklistAddresses modifiers and list
-    4. blacklist addresses etc need to be public
+    1. check if value is already 0 for fine() then decide what to do with this
     */
 
     ERC20 erc20Contract;
@@ -145,7 +141,6 @@ contract NUSToken {
         blacklistedAddresses[addr] = addOrRemove;
         emit modifiedAddressList(addr, typeOfAdd[1], addOrRemove);
     }
-
     /** 
     * @dev transfer tokens from supply pool to receiver 
     *      any whitelisted address can use this since we 
@@ -189,7 +184,6 @@ contract NUSToken {
     * @param addr address of an NUS students in school this semester
     */
     function semesterTokenDistribution(address addr) public isContractOwner {
-
         giveTokens(addr, SEMESTER_TOKEN_DISTRIBUTION_NUMBER);
         emit semesterTokensDistributed(addr);
     }
