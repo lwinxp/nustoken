@@ -20,38 +20,28 @@ contract NUSToken {
     uint256 SEMESTER_TOKEN_DISTRIBUTION_NUMBER = 10000; // no. of tokens to be given out every semester
     mapping(address => bool) whitelistAddresses; // extra addresses that can distribute tokens, does not include contract owner (aka NUS)
     mapping(address => bool) blacklistedAddresses; // addresses that are blacklisted and cannot see results or bid for modules
-
     mapping(address => bool) canBlacklistAddresses; // addresses that can blacklist other addresses
     mapping(address => bool) canFineAddresses; // addresses that can fine users/students (eg; NUS, library)
+    mapping(uint256 => string) typeOfAdd;
     address public owner; // contract owner should be NUS, since NUS deploys this contract
-    bool internal tokensMinted;
 
 
     // EVENTS
     
     // addition and removal of addresses into whitelist
-    event addedWhitelistAddresses(address addr);
-    event removedWhitelistAddresses(address addr);   
-
-    // addition and removal of addresses into blacklist
-    event addedblacklistedAddresses(address addr);
-    event removedblacklistedAddresses(address addr);   
-
-    // addition and removal of addresses into list of addresses that can fine
-    event addedCanFineAddresses(address addr);
-    event removedCanFineAddresses(address addr);
+    event addedAddresses(address addresses, string typeOfAddress);
 
     // tokens has been given to the user
     event gaveTokens(address to, uint256 amt);
 
     // tokens distributed at the start of the semester
-    event semesterTokensDistributed(address addr);
+    event semesterTokensDistributed(address addresses);
 
     // tokens has been taken from the user 
     event tookTokens(address from, uint256 amt);
 
     // all tokens taken from the given addresses
-    event tokensRetrieved(address addr);
+    event tokensRetrieved(address addresses);
 
     // user is fined
     event fined(address from, uint256 amt);
@@ -86,7 +76,6 @@ contract NUSToken {
 
     /** 
     * @dev create new NUSToken instance, with addresses for whitelist, blacklist, addresses that can fine.
-
     */
     constructor() public {
         ERC20 e = new ERC20();
@@ -95,6 +84,10 @@ contract NUSToken {
         owner = msg.sender;
         whitelistAddresses[owner] = true;
         canFineAddresses[owner] = true;
+        typeOfAdd[0] = "whitelistAddresses";
+        typeOfAdd[1] = "blacklistedAddresses";
+        typeOfAdd[2] = "canBlacklistAddresses";
+        typeOfAdd[3] = "canFineAddresses";
 
     }
 
@@ -113,55 +106,24 @@ contract NUSToken {
     * @dev add additional addresses to whitelist to allow them to distrubute tokens
     * @param addresses a list of addressses to add into whitelist
     */
-    function addWhitelistAddresses(address addr) public isContractOwner {
-        whitelistAddresses[addr] = true;
-        emit addedWhitelistAddresses(addr);
-    }
-
-    /** 
-    * @dev remove addresses from the whitelist
-    * @param addresses a list of addressses to remove from whitelist
-    */
-    function removeWhitelistAddresses(address addr) public isContractOwner {
-        whitelistAddresses[addr] = true;
-        emit removedWhitelistAddresses(addr);
-    }
-
-    /** 
-    * @dev add additional addresses to the blacklist
-    * @param addresses a list of addressses to add into whitelist
-    */
-    function addblacklistedAddresses(address addr) public isContractOwner {
-        blacklistedAddresses[addr] = true;
-        emit addedblacklistedAddresses(addr);
-    }
-
-    /** 
-    * @dev remove addresses from the blacklist
-    * @param addresses a list of addressses to remove from blacklist
-    */
-    function removeblacklistedAddresses(address addr) public isContractOwner {
-        blacklistedAddresses[addr] = true;
-        emit removedblacklistedAddresses(addr);
-    }
-
-    /** 
-    * @dev add additional addresses to the list of addresses that can fine users
-    * @param addresses a list of addressses to add into list of addresses that can fine users
-    */
-    function addCanFineAddresses(address addr) public isContractOwner {
-        canFineAddresses[addr] = true;
-        emit addedCanFineAddresses(addr);
-    }
-
-    /** 
-    * @dev remove addresses to the list of addresses that can fine users
-    * @param addresses a list of addressses to remove from list of addresses that can fine users
-    */
-    function removeCanFineAddresses(address addr) public isContractOwner {
-
-        canFineAddresses[addr] = false;
-        emit removedCanFineAddresses(addr);
+    function modifyAddList(address addresses, uint256 typeOfList , bool addOrRemove) public isContractOwner {
+        // require(typeOfAdd[typeOfList] != "0" , "Not a vlaid list type");
+        if (typeOfList == 0){
+            whitelistAddresses[addresses] = addOrRemove;
+        }
+        else if (typeOfList == 1){
+            blacklistedAddresses[addresses] = addOrRemove;
+        }
+        else if (typeOfList == 2){
+            canBlacklistAddresses[addresses] = addOrRemove;
+        }
+        else if (typeOfList == 3){
+            canFineAddresses[addresses] = addOrRemove;
+        }
+        else{
+            revert("Incorrect typeOfList");
+        }
+        emit addedAddresses( addresses,  typeOfAdd[typeOfList]);
     }
 
 
@@ -207,10 +169,10 @@ contract NUSToken {
     *      only NUS should be able to do this.
     * @param addresses addresses of all NUS students in school this semester
     */
-    function semesterTokenDistribution(address addr) public isContractOwner {
+    function semesterTokenDistribution(address addresses) public isContractOwner {
 
         giveTokens(addresses, SEMESTER_TOKEN_DISTRIBUTION_NUMBER);
-        emit semesterTokensDistributed(addr);
+        emit semesterTokensDistributed(addresses);
     }
 
     /** 
@@ -220,9 +182,9 @@ contract NUSToken {
     *      only NUS should be able to do this.
     * @param addresses addresses of all users whose tokens need to be retrieved.
     */
-    function retrieveAllTokens(address addr) public isContractOwner {
-        takeTokens(addresses, this.balanceOf(addr));
-        emit tokensRetrieved(addr);
+    function retrieveAllTokens(address addresses) public isContractOwner {
+        takeTokens(addresses, this.balanceOf(addresses));
+        emit tokensRetrieved(addresses);
     }
 
 
