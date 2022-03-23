@@ -10,6 +10,8 @@ contract('NUSElections', function(accounts) {
   before(async () => {
     NUSTokenInstance = await NUSToken.deployed();
     NUSElectionsInstance = await NUSElections.deployed();
+    NUSElectionsInstanceDraw = await NUSElections.new([0,1], 2, 1, NUSTokenInstance.address);
+    // new elections instance to test draw result case
   });
 
   console.log("Testing NUS Elections");
@@ -57,8 +59,8 @@ contract('NUSElections', function(accounts) {
   it('Student 2 can vote for election option 1', async() => {
     await NUSElectionsInstance.vote(1, {from: accounts[2]});
     
-    let getVotingChoice1 = await NUSElectionsInstance.getVotingChoice({from: accounts[2]})
-    assert.strictEqual(getVotingChoice1.toNumber(), 1);
+    let getVotingChoice2 = await NUSElectionsInstance.getVotingChoice({from: accounts[2]})
+    assert.strictEqual(getVotingChoice2.toNumber(), 1);
   });
 
   it('tallyVote cannot be called by account that is not election owner', async() => {
@@ -72,8 +74,8 @@ contract('NUSElections', function(accounts) {
   it('tallyVote can be called by account that is the election owner', async() => {
     await NUSElectionsInstance.tallyVote({from: accounts[0]})
 
-    let getElectionStatus0 = await NUSElectionsInstance.getElectionStatus({from: accounts[0]})
-    assert.strictEqual(getElectionStatus0, true);
+    let getElectionStatus1 = await NUSElectionsInstance.getElectionStatus({from: accounts[1]})
+    assert.strictEqual(getElectionStatus1, true);
   });
 
   it('getVotingResult cannot be called by account that is not election owner', async() => {
@@ -93,9 +95,9 @@ contract('NUSElections', function(accounts) {
   });
 
   it('showVotingResult can be called to get correct votes per option', async() => {
-    let showVotingResult0 = await NUSElectionsInstance.showVotingResult({from: accounts[0]})
+    let showVotingResult1 = await NUSElectionsInstance.showVotingResult({from: accounts[1]})
 
-    assert.strictEqual(showVotingResult0.toString(), '100,200');
+    assert.strictEqual(showVotingResult1.toString(), '100,200');
   });
 
   it('issueVotingReward cannot be called by account that is not election owner', async() => {
@@ -136,4 +138,151 @@ contract('NUSElections', function(accounts) {
 
     assert.strictEqual(nusElectionsBalance.toNumber(), 0);
   });
+
+  it('NUSElections can have draw result', async() => {
+    await NUSTokenInstance.giveTokens(accounts[3],200);
+    await NUSTokenInstance.giveTokens(accounts[4],200);
+    await NUSTokenInstance.giveTokens(NUSElectionsInstanceDraw.address,10);
+
+    let account3Balance = await NUSTokenInstance.balanceOf(accounts[3]);
+    let account4Balance = await NUSTokenInstance.balanceOf(accounts[4]);
+    let accountElectionsBalance = await NUSTokenInstance.balanceOf(NUSElectionsInstanceDraw.address);
+
+    assert.strictEqual(
+        account3Balance.toNumber(),
+        200,
+        "Failed to give Tokens"
+    )
+
+    assert.strictEqual(
+        account4Balance.toNumber(),
+        200,
+        "Failed to give Tokens"
+    )
+
+    assert.strictEqual(
+      accountElectionsBalance.toNumber(),
+      10,
+      "Failed to give Tokens"
+    )
+
+    await NUSElectionsInstanceDraw.vote(0, {from: accounts[3]});
+    
+    let getVotingChoice3 = await NUSElectionsInstanceDraw.getVotingChoice({from: accounts[3]})
+    assert.strictEqual(getVotingChoice3.toNumber(), 0);
+
+    await NUSElectionsInstanceDraw.vote(1, {from: accounts[4]});
+    
+    let getVotingChoice4 = await NUSElectionsInstanceDraw.getVotingChoice({from: accounts[4]})
+    assert.strictEqual(getVotingChoice4.toNumber(), 1);
+
+    await NUSElectionsInstanceDraw.tallyVote({from: accounts[0]})
+
+    let getElectionStatus3 = await NUSElectionsInstanceDraw.getElectionStatus({from: accounts[3]})
+    assert.strictEqual(getElectionStatus3, true);
+
+    getVotingResult0 = await NUSElectionsInstanceDraw.getVotingResult({from: accounts[0]})
+
+    truffleAssert.eventEmitted(getVotingResult0, "draw");
+
+    let showVotingResult3 = await NUSElectionsInstanceDraw.showVotingResult({from: accounts[3]})
+
+    assert.strictEqual(showVotingResult3.toString(), '200,200');
+
+    await NUSTokenInstance.modifyList(NUSElectionsInstanceDraw.address, 0, true, {from: accounts[0]});
+
+    let isAddressInWhitelistAddresses0 = await NUSTokenInstance.isAddressInWhitelistAddresses(accounts[0], {from: accounts[0]})
+    let isElectionDrawAddressInWhitelistAddresses = await NUSTokenInstance.isAddressInWhitelistAddresses(NUSElectionsInstanceDraw.address, {from: accounts[0]})
+
+    assert.strictEqual(isAddressInWhitelistAddresses0, true);
+    assert.strictEqual(isElectionDrawAddressInWhitelistAddresses, true);
+
+    await NUSElectionsInstanceDraw.issueVotingReward({from: accounts[0]})
+    balance3 = await NUSTokenInstance.balanceOf(accounts[3]);
+    balance4 = await NUSTokenInstance.balanceOf(accounts[4]);
+    balanceElections = await NUSTokenInstance.balanceOf(NUSElectionsInstanceDraw.address);
+
+    assert.strictEqual(balance3.toNumber(), 201);
+    assert.strictEqual(balance4.toNumber(), 201);
+    assert.strictEqual(balanceElections.toNumber(), 8);
+  });
 });
+
+// initialised new instance of NUSElections instead of use new contract block
+
+// // contract('NUSElections Draw Result', function(accounts) {
+// //   before(async () => {
+// //     NUSTokenInstance = await NUSToken.deployed();
+// //     NUSElectionsInstanceDraw = await NUSElections.deployed();
+// //   });
+
+// //   console.log("Testing NUS Elections Draw Result");
+
+// //   it('NUSElections can have draw result', async() => {
+// //     await NUSTokenInstance.giveTokens(accounts[3],200);
+// //     await NUSTokenInstance.giveTokens(accounts[4],200);
+// //     await NUSTokenInstance.giveTokens(NUSElectionsInstanceDraw.address,10);
+
+// //     let account3Balance = await NUSTokenInstance.balanceOf(accounts[3]);
+// //     let account4Balance = await NUSTokenInstance.balanceOf(accounts[4]);
+// //     let accountElectionsBalance = await NUSTokenInstance.balanceOf(NUSElectionsInstanceDraw.address);
+
+// //     assert.strictEqual(
+// //         account3Balance.toNumber(),
+// //         200,
+// //         "Failed to give Tokens"
+// //     )
+
+// //     assert.strictEqual(
+// //         account4Balance.toNumber(),
+// //         200,
+// //         "Failed to give Tokens"
+// //     )
+
+// //     assert.strictEqual(
+// //       accountElectionsBalance.toNumber(),
+// //       10,
+// //       "Failed to give Tokens"
+// //     )
+
+// //     await NUSElectionsInstanceDraw.vote(0, {from: accounts[3]});
+    
+// //     let getVotingChoice3 = await NUSElectionsInstanceDraw.getVotingChoice({from: accounts[3]})
+// //     assert.strictEqual(getVotingChoice3.toNumber(), 0);
+
+// //     await NUSElectionsInstanceDraw.vote(1, {from: accounts[4]});
+    
+// //     let getVotingChoice4 = await NUSElectionsInstanceDraw.getVotingChoice({from: accounts[4]})
+// //     assert.strictEqual(getVotingChoice4.toNumber(), 1);
+
+// //     await NUSElectionsInstanceDraw.tallyVote({from: accounts[0]})
+
+// //     let getElectionStatus3 = await NUSElectionsInstanceDraw.getElectionStatus({from: accounts[3]})
+// //     assert.strictEqual(getElectionStatus3, true);
+
+// //     getVotingResult0 = await NUSElectionsInstanceDraw.getVotingResult({from: accounts[0]})
+
+// //     truffleAssert.eventEmitted(getVotingResult0, "draw");
+
+// //     let showVotingResult3 = await NUSElectionsInstanceDraw.showVotingResult({from: accounts[3]})
+
+// //     assert.strictEqual(showVotingResult3.toString(), '200,200');
+
+// //     await NUSTokenInstance.modifyList(NUSElectionsInstanceDraw.address, 0, true, {from: accounts[0]});
+
+// //     let isAddressInWhitelistAddresses0 = await NUSTokenInstance.isAddressInWhitelistAddresses(accounts[0], {from: accounts[0]})
+// //     let isElectionDrawAddressInWhitelistAddresses = await NUSTokenInstance.isAddressInWhitelistAddresses(NUSElectionsInstanceDraw.address, {from: accounts[0]})
+
+// //     assert.strictEqual(isAddressInWhitelistAddresses0, true);
+// //     assert.strictEqual(isElectionDrawAddressInWhitelistAddresses, true);
+
+// //     await NUSElectionsInstanceDraw.issueVotingReward({from: accounts[0]})
+// //     balance3 = await NUSTokenInstance.balanceOf(accounts[3]);
+// //     balance4 = await NUSTokenInstance.balanceOf(accounts[4]);
+// //     balanceElections = await NUSTokenInstance.balanceOf(NUSElectionsInstanceDraw.address);
+
+// //     assert.strictEqual(balance3.toNumber(), 201);
+// //     assert.strictEqual(balance4.toNumber(), 201);
+// //     assert.strictEqual(balanceElections.toNumber(), 8);
+// //   });
+// });
