@@ -7,5 +7,5 @@ module.exports = async function(deployer) {
   await deployer.deploy(ERC20);
 	await deployer.deploy(NUSToken);
   await deployer.deploy(NUSModReg, NUSToken.address);
-	await deployer.deploy(NUSElections, [0,1], 2);
+	await deployer.deploy(NUSElections, [0,1], 2, 1, NUSToken.address);
 };

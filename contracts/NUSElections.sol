@@ -2,6 +2,8 @@
 
 pragma solidity >=0.5.0;
 
+import "./NUSToken.sol";
+
 /** 
  * @title NUSElections
  */
@@ -22,6 +24,7 @@ contract NUSElections {
     }
 
     // NUSToken nusTokenInstance
+    NUSToken nusTokenInstance;
     address public electionOwner;
     address[] voterList;
     uint256[] votingOptions;
@@ -29,19 +32,24 @@ contract NUSElections {
     mapping(address => Voter) voters;
     mapping(uint256 => uint256) votingResults;
     bool electionStatus;
+    bool rewardStatus;
     uint256 totalVotes = 0;
     uint256 minimumVoters = 0;
+    uint256 votingReward = 1;
 
     /** 
      * Create a new election
      * @param options a list of options, always start from index 0. (frontend need to configure it to start from 0)
      */
-    constructor(uint256[] memory options, uint256 minVoters) public {
+    constructor(uint256[] memory options, uint256 minVoters, uint reward, NUSToken nusTokenInstanceAddress) public {
+        nusTokenInstance = nusTokenInstanceAddress;
         electionOwner = msg.sender;
         votingOptions = options;
         electionStatus = false;
+        rewardStatus = false;
         votingResultsList = new uint256[](options.length);
         minimumVoters = minVoters;
+        votingReward = reward;
     }
 
     // events 
@@ -77,18 +85,34 @@ contract NUSElections {
     modifier validVotingChoice(uint256 votingChoice) {
         require(
             votingChoice >= 0 && votingChoice <= votingOptions.length, 
-            "Invalid voting option"
+            "Invalid voting option."
         );
         _;
     }
 
     modifier electionOwnerOnly() {
-        require(electionOwner == msg.sender, "only election owner can perform this action");
+        require(electionOwner == msg.sender, "Only election owner can perform this action.");
         _;
     }
 
     modifier minimumVotersReached() {
-        require(voterList.length >= minimumVoters, "election has not met minimum required number of voters");
+        require(voterList.length >= minimumVoters, "Election has not met minimum required number of voters.");
+        _;
+    }
+
+    modifier votingRewardNotIssued() {
+        require(
+            !rewardStatus, 
+            "Voting reward has not been issued."
+        );
+        _;
+    }
+
+    modifier votingRewardIssued() {
+        require(
+            rewardStatus, 
+            "Voting reward has been issued."
+        );
         _;
     }
     // main functions 
@@ -99,8 +123,8 @@ contract NUSElections {
     * @param votingChoice uint256, which must be in range of the votingOptions
     **/
     function vote(uint256 votingChoice) electionOngoing validVotingChoice(votingChoice) public {
-        // uint256 memory curr_voter_NUST = nusTokenInstance.checkCredit();
-        uint256 curr_voter_NUST = 1;
+        uint256 curr_voter_NUST = nusTokenInstance.balanceOf(msg.sender);
+        // uint256 curr_voter_NUST = 1;
         Voter memory curr_voter = Voter(curr_voter_NUST, true, votingChoice);
         if (voters[msg.sender].voted == false) { // voter has not voted before 
             voters[msg.sender] = curr_voter;
@@ -216,6 +240,20 @@ contract NUSElections {
         
     }
 
+    function issueVotingReward() public electionEnded electionOwnerOnly votingRewardNotIssued {
+        for (uint256 i=0; i<voterList.length; i++) {
+            nusTokenInstance.takeTokensGiveTo(address(this), voterList[i], votingReward);
+        }
+        //  voting rewards completed
+        rewardStatus = true;
+    }
+    // NUSElections contract address needs to be whitelisted by NUSToken contract to giveTokens
+
+    function withdraw() public electionOwnerOnly votingRewardIssued {
+        uint256 nusElectionsBalance = nusTokenInstance.balanceOf(address(this));
+        nusTokenInstance.takeTokensGiveTo(address(this), address(nusTokenInstance), nusElectionsBalance);
+    }
+
     // getters and helpers 
     function getVotingChoice() public view returns(uint256) {
         return voters[msg.sender].vote;
@@ -224,7 +262,6 @@ contract NUSElections {
     function getTotalVotes() public view returns(uint256) {
         return totalVotes;
     }
-
 
     function getMinimumVoters() public view returns(uint256) {
         return minimumVoters;
