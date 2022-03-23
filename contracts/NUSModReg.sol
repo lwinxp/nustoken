@@ -1,6 +1,7 @@
 pragma solidity >=0.5.0;
 
 import "./ERC20.sol";
+import "./NUSToken.sol";
 
 /**
  * @title NUSModReg
@@ -16,7 +17,7 @@ import "./ERC20.sol";
  *  - Modifier to check if they are in the blacklist for not paying fines/returns books (private)
  */
 contract NUSModReg {
-    ERC20 erc20instance;
+    NUSToken NUSTokeninstance;
 
     uint256 maxModuleRegistered = 10;
     address admin;
@@ -27,8 +28,8 @@ contract NUSModReg {
     mapping(address => bytes32[]) studentToModules;
     mapping(address => bytes32[]) studentToAllocation;
 
-    constructor() public {
-        erc20instance = new ERC20();
+    constructor(NUSToken NUSTokeninstanceAddress) public {
+        NUSTokeninstance = NUSTokeninstanceAddress;
         admin = msg.sender;
     }
 
@@ -45,14 +46,14 @@ contract NUSModReg {
         bytes32[] memory moduleCodes,
         uint256[] memory moduleQuota
     ) public {
-        require(msg.sender == admin);
+        require(msg.sender == admin, "Only Admin can register Modules");
         uint256 length = moduleCodes.length;
-        require(length == moduleQuota.length);
+        require(length == moduleQuota.length, "Input lengths dont match");
         for (uint256 i = 0; i < length; i++) {
             // Positive quota
-            require(moduleQuota[i] > 0);
+            require(moduleQuota[i] > 0, "You can have negative or 0 qouta for modules");
             // No duplicate code
-            require(moduleToQuota[moduleCodes[i]] == 0);
+            require(moduleToQuota[moduleCodes[i]] == 0, "Module Code has already been set");
             moduleToQuota[moduleCodes[i]] = moduleQuota[i];
         }
         for (uint256 i = 0; i < length; i++) {
@@ -64,9 +65,9 @@ contract NUSModReg {
 
     function bid(bytes32 moduleCode) public {
         // Module must be present
-        require(moduleToQuota[moduleCode] != 0);
+        require(moduleToQuota[moduleCode] != 0, "Incorrect Byte32 code for module");
         // Max number of modules allowed to bid.
-        require((studentToModules[msg.sender]).length <= maxModuleRegistered);
+        require((studentToModules[msg.sender]).length <= maxModuleRegistered,"You are bidding for too many mods");
         // Check if student exists
         if ((studentToModules[msg.sender]).length == 0) {
             allStudents.push(msg.sender);
@@ -117,9 +118,9 @@ contract NUSModReg {
                 uint256 k = j - 1;
                 while (
                     (int256(k) >= 0) &&
-                    (erc20instance.balanceOf(
+                    (NUSTokeninstance.balanceOf(
                         moduleToAllocation[moduleCode][k]
-                    ) < erc20instance.balanceOf(currentStudent))
+                    ) < NUSTokeninstance.balanceOf(currentStudent))
                 ) {
                     moduleToAllocation[moduleCode][k + 1] = moduleToAllocation[
                         moduleCode
@@ -160,7 +161,7 @@ contract NUSModReg {
     }
 
     // Test function.
-    function getBidModules() public view returns (bytes32[] memory) {
+    function getMyBidModules() public view returns (bytes32[] memory) {
         return studentToModules[msg.sender];
     }
 
@@ -172,12 +173,16 @@ contract NUSModReg {
         return moduleToAllocation[moduleCode];
     }
 
-    function getStudentAllocation() public view returns (bytes32[] memory) {
+    function getMyAllocation() public view returns (bytes32[] memory) {
         return studentToAllocation[msg.sender];
     }
 
-    function getBalance() public view returns (uint256) {
-        return erc20instance.balanceOf(msg.sender);
+    function getMyBalance() public view returns (uint256) {
+        return NUSTokeninstance.balanceOf(msg.sender);
+    }
+
+    function getModuleQouta(bytes32 mod) public view returns (uint256) {
+        return moduleToQuota[mod];
     }
 
     // TODO:Modifier to check if they are in the blacklist for not paying fines/returns books (private)
