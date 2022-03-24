@@ -16,15 +16,13 @@ contract('NUSElections', function(accounts) {
 
   console.log("Testing NUS Elections");
 
-  it('Give Tokens to students and NUSElections contract', async() =>{
+  it('Give Tokens to students', async() =>{
       await NUSTokenInstance.giveTokens(accounts[1],100);
       await NUSTokenInstance.giveTokens(accounts[2],200);
-      await NUSTokenInstance.giveTokens(NUSElectionsInstance.address,10);
 
       
       let account1Balance = await NUSTokenInstance.balanceOf(accounts[1]);
       let account2Balance = await NUSTokenInstance.balanceOf(accounts[2]);
-      let accountElectionsBalance = await NUSTokenInstance.balanceOf(NUSElectionsInstance.address);
 
       assert.strictEqual(
           account1Balance.toNumber(),
@@ -37,12 +35,6 @@ contract('NUSElections', function(accounts) {
           200,
           "Failed to give Tokens"
       )
-
-      assert.strictEqual(
-        accountElectionsBalance.toNumber(),
-        10,
-        "Failed to give Tokens"
-    )
   })
 
   it('Student 1 can vote for election option 0', async() => {
@@ -100,11 +92,23 @@ contract('NUSElections', function(accounts) {
     assert.strictEqual(showVotingResult1.toString(), '100,200');
   });
 
-  it('issueVotingReward cannot be called by account that is not election owner', async() => {
+  it('issueVotingReward cannot be called if token balance is not positive', async() => {
+    await truffleAssert.reverts(NUSElectionsInstance.issueVotingReward({from: accounts[0]}), "NUS Token balance must be more than 0.")
+  });
+
+  it('issueVotingReward cannot be called by account that is not election owner, even if token balance is positive', async() => {
+    await NUSTokenInstance.giveTokens(NUSElectionsInstance.address,10);
+    let accountElectionsBalance = await NUSTokenInstance.balanceOf(NUSElectionsInstance.address);
+    assert.strictEqual(
+      accountElectionsBalance.toNumber(),
+      10,
+      "Failed to give Tokens"
+    )
+
     await truffleAssert.reverts(NUSElectionsInstance.issueVotingReward({from: accounts[1]}), "Only election owner can perform this action.")
   });
 
-  it('issueVotingReward can be called by account that is election owner', async() => {
+  it('issueVotingReward can be called by account that is election owner and token balance is positive', async() => {
     await NUSTokenInstance.modifyList(NUSElectionsInstance.address, 0, true, {from: accounts[0]});
     // whitelist election address
 
@@ -127,12 +131,16 @@ contract('NUSElections', function(accounts) {
 
   });
 
-  it('withdraw cannot be called by account that is not election owner', async() => {
-    await truffleAssert.reverts(NUSElectionsInstance.withdraw({from: accounts[1]}), "Only election owner can perform this action.")
+  it('issueVotingReward can only be called once, not repeatedly', async() => {
+    await truffleAssert.reverts(NUSElectionsInstance.issueVotingReward({from: accounts[0]}), "Voting reward has been issued..")
   });
 
-  it('withdraw can be called by account that is the election owner', async() => {
-    await NUSElectionsInstance.withdraw({from: accounts[0]})
+  it('returnTokenToAdmin cannot be called by account that is not election owner', async() => {
+    await truffleAssert.reverts(NUSElectionsInstance.returnTokenToAdmin({from: accounts[1]}), "Only election owner can perform this action.")
+  });
+
+  it('returnTokenToAdmin can be called by account that is the election owner', async() => {
+    await NUSElectionsInstance.returnTokenToAdmin({from: accounts[0]})
 
     let nusElectionsBalance = await NUSTokenInstance.balanceOf(NUSElectionsInstance.address);
 
@@ -176,6 +184,8 @@ contract('NUSElections', function(accounts) {
     let getVotingChoice4 = await NUSElectionsInstanceDraw.getVotingChoice({from: accounts[4]})
     assert.strictEqual(getVotingChoice4.toNumber(), 1);
 
+    await truffleAssert.reverts(NUSElectionsInstanceDraw.issueVotingReward({from: accounts[0]}), "Election not ended yet..")
+
     await NUSElectionsInstanceDraw.tallyVote({from: accounts[0]})
 
     let getElectionStatus3 = await NUSElectionsInstanceDraw.getElectionStatus({from: accounts[3]})
@@ -205,6 +215,12 @@ contract('NUSElections', function(accounts) {
     assert.strictEqual(balance3.toNumber(), 201);
     assert.strictEqual(balance4.toNumber(), 201);
     assert.strictEqual(balanceElections.toNumber(), 8);
+
+    await NUSElectionsInstanceDraw.returnTokenToAdmin({from: accounts[0]})
+
+    let nusElectionsBalanceDraw = await NUSTokenInstance.balanceOf(NUSElectionsInstanceDraw.address);
+
+    assert.strictEqual(nusElectionsBalanceDraw.toNumber(), 0);
   });
 });
 

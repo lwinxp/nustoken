@@ -100,10 +100,15 @@ contract NUSElections {
         _;
     }
 
+    modifier positiveTokenBalance() {
+        require(nusTokenInstance.balanceOf(address(this)) > 0, "NUS Token balance must be more than 0.");
+        _;
+    }
+
     modifier votingRewardNotIssued() {
         require(
             !rewardStatus, 
-            "Voting reward has not been issued."
+            "Voting reward has been issued."
         );
         _;
     }
@@ -111,7 +116,7 @@ contract NUSElections {
     modifier votingRewardIssued() {
         require(
             rewardStatus, 
-            "Voting reward has been issued."
+            "Voting reward has not been issued."
         );
         _;
     }
@@ -240,7 +245,7 @@ contract NUSElections {
         
     }
 
-    function issueVotingReward() public electionEnded electionOwnerOnly votingRewardNotIssued {
+    function issueVotingReward() public positiveTokenBalance electionEnded electionOwnerOnly votingRewardNotIssued {
         for (uint256 i=0; i<voterList.length; i++) {
             nusTokenInstance.takeTokensGiveTo(address(this), voterList[i], votingReward);
         }
@@ -249,7 +254,7 @@ contract NUSElections {
     }
     // NUSElections contract address needs to be whitelisted by NUSToken contract to giveTokens
 
-    function withdraw() public electionOwnerOnly votingRewardIssued {
+    function returnTokenToAdmin() public positiveTokenBalance electionEnded electionOwnerOnly votingRewardIssued {
         uint256 nusElectionsBalance = nusTokenInstance.balanceOf(address(this));
         nusTokenInstance.takeTokensGiveTo(address(this), address(nusTokenInstance), nusElectionsBalance);
     }
