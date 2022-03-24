@@ -35,6 +35,9 @@ contract NUSToken {
     // tokens has been taken from the user 
     event tookTokens(address from, uint256 amt);
 
+    // tokens has been taken from user to give to another user
+    event tookTokensGaveTo(address from, address to, uint256 amt);
+
     // all tokens taken from the given addresses
     event tokensRetrieved(address addr);
 
@@ -164,6 +167,20 @@ contract NUSToken {
     function takeTokens(address from, uint256 amt) public isContractOwner {
         erc20Contract.transferFrom(from, address(this), amt);
         emit tookTokens(from, amt);
+    }
+
+    /** 
+    * @dev take tokens from a user,
+    *      transferred to another user 
+    *      only isWhitelistAddress should be able to do this.
+    *      NUSElections is using this
+    * @param from address of the user whose token is being taken from
+    * @param to address of the user whose token is being given to
+    * @param amt amount of tokens that is taken / given
+    */
+    function takeTokensGiveTo(address from, address to, uint256 amt) public isWhitelistAddress {
+        erc20Contract.transferFrom(from, to, amt);
+        emit tookTokensGaveTo(from, to, amt);
     }
 
     /** 
