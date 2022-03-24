@@ -181,7 +181,7 @@ contract NUSModReg {
         return NUSTokeninstance.balanceOf(msg.sender);
     }
 
-    function getModuleQouta(bytes32 mod) public view returns (uint256) {
+    function getModuleQuota(bytes32 mod) public view returns (uint256) {
         return moduleToQuota[mod];
     }
 
