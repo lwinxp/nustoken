@@ -44,6 +44,26 @@ contract NUSToken {
     // user is fined
     event fined(address from, uint256 amt);
 
+    // CONSTRUCTOR
+
+    /** 
+    * @dev create new NUSToken instance, with addresses for whitelist, blacklist, addresses that can fine.
+    */
+    constructor() public {
+        ERC20 e = new ERC20();
+        erc20Contract = e;
+        erc20Contract.mint(address(this), SUPPLY_TOKEN_LIMIT); // mints all tokens at once
+        owner = msg.sender;
+        whitelistAddresses[owner] = true;
+        canBlacklistAddresses[owner] = true;
+        canFineAddresses[owner] = true;
+        typeOfAdd[0] = "whitelistAddresses";
+        typeOfAdd[1] = "blacklistedAddresses";
+        typeOfAdd[2] = "canBlacklistAddresses";
+        typeOfAdd[3] = "canFineAddresses";
+
+    }
+
     // MODIFIERS
 
     /**
@@ -76,26 +96,6 @@ contract NUSToken {
     modifier isCanFineAddresses() {
         require(canFineAddresses[msg.sender], "Not an address that is allowed to fine");
         _;
-    }
-
-    // CONSTRUCTOR
-
-    /** 
-    * @dev create new NUSToken instance, with addresses for whitelist, blacklist, addresses that can fine.
-    */
-    constructor() public {
-        ERC20 e = new ERC20();
-        erc20Contract = e;
-        erc20Contract.mint(address(this), SUPPLY_TOKEN_LIMIT); // mints all tokens at once
-        owner = msg.sender;
-        whitelistAddresses[owner] = true;
-        canBlacklistAddresses[owner] = true;
-        canFineAddresses[owner] = true;
-        typeOfAdd[0] = "whitelistAddresses";
-        typeOfAdd[1] = "blacklistedAddresses";
-        typeOfAdd[2] = "canBlacklistAddresses";
-        typeOfAdd[3] = "canFineAddresses";
-
     }
 
     // FUNCTIONS/LOGIC
