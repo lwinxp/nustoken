@@ -47,7 +47,7 @@ contract NUSToken {
     // CONSTRUCTOR
 
     /** 
-    * @dev create new NUSToken instance, with addresses for whitelist, blacklist, addresses that can fine.
+    * @dev create new NUSToken instance
     */
     constructor() public {
         ERC20 e = new ERC20();
