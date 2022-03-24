@@ -9,8 +9,8 @@ var NUSModReg = artifacts.require("NUSModReg");
 let mod1 = "0x6373313031300000000000000000000000000000000000000000000000000000";
 let mod2 = "0x6d61313130317300000000000000000000000000000000000000000000000000";
 
-let modQouta1 = 1;
-let modQouta2 = 2;
+let modQuota1 = 1;
+let modQuota2 = 2;
 
 contract('NUSModReg', function(accounts) {
     before(async () => {
@@ -42,32 +42,32 @@ contract('NUSModReg', function(accounts) {
 
     it('Register Modules', async() =>{
         
-        await NUSModRegInstance.registerModules([mod1,mod2],[modQouta1,modQouta2]);
+        await NUSModRegInstance.registerModules([mod1,mod2],[modQuota1,modQuota2]);
         
-        let modQouta1_ = await NUSModRegInstance.getModuleQouta(mod1);
-        let modQouta2_ = await NUSModRegInstance.getModuleQouta(mod2);
+        let modQuota1_ = await NUSModRegInstance.getModuleQuota(mod1);
+        let modQuota2_ = await NUSModRegInstance.getModuleQuota(mod2);
         
-        // console.log(modQouta1_);
+        // console.log(modQuota1_);
         assert.strictEqual(
-            modQouta1,
-            modQouta1_.toNumber(),
-            "Failed to map Qouta"
+            modQuota1,
+            modQuota1_.toNumber(),
+            "Failed to map Quota"
         )
 
         assert.strictEqual(
-            modQouta2,
-            modQouta2_.toNumber(),
-            "Failed to map Qouta"
+            modQuota2,
+            modQuota2_.toNumber(),
+            "Failed to map Quota"
         )
         
     })
 
     it('Duplicate Modules Set', async() =>{
         let dupMod1 = "0x6373313031300000000000000000000000000000000000000000000000000000";
-        let dupMod1Qouta1 = 1;
+        let dupMod1Quota1 = 1;
         
         await truffleAssert.reverts(NUSModRegInstance.registerModules(
-            [dupMod1],[dupMod1Qouta1]),
+            [dupMod1],[dupMod1Quota1]),
             "Module Code has already been set"
         );
     })
