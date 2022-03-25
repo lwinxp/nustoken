@@ -8,12 +8,16 @@ import "./NUSToken.sol";
 contract NUSLibrary {
   address admin;
   NUSToken NUSTokeninstance;
-  mapping(address => bool) isPaid;
   mapping(address => uint256) fineList;
 
   constructor(NUSToken nust) public {
     NUSTokeninstance = nust;
     admin = msg.sender;
+  }
+
+  modifier isLibrarian() {
+    require(msg.sender == admin, "Not authorised");
+    _;
   }
 
   //Event 
@@ -22,30 +26,36 @@ contract NUSLibrary {
   event fineCollected(address student, uint256 amt);
   event BlacklistUpdated(address student);
 
-  modifier isInBlacklist();
-
-  function assignFine(address student, uint256 amt) public {
-    require(NUSTokeninstance.isAddressInBlacklistedAddresses(student), "Student not found in blacklist"); // make sure student is in blacklist
-    fineList[student] = amt;
+   /** 
+     * Assign fine to each blacklisted options
+     * @param student address of student,
+     * @param amt amount that librarian decides to fine student, amount calculated offchain 
+     */
+  function assignFine(address student, uint256 amt) public isLibrarian {
+    require(NUSTokeninstance.isAddressInBlacklistedAddresses(student), "Student not found in blacklist"); // make sure student is blacklisted
+    fineList[student] += amt; // cummulative fine 
     emit fineAssigned(student, amt);
   }
 
-  function addToBlacklist(address[] memory listOfLateBorrowers) public {
-    uint256 length = listOfLateBorrowers.length;
-    for (uint256 i = 0; i < length; i++) {
-      address student = listOfLateBorrowers[i]; 
-      require(NUSTokeninstance.isAddressInBlacklistedAddresses(student), "Student not found in blacklist"); // make sure student is not an existing offender 
-      NUSTokeninstance.modifyBlacklist(student, true); // add student to blacklist 
-      isPaid[student] = false; // student marked as not paid
-    }
-    emit BlacklistAppended(listOfLateBorrowers);
+  /** 
+    * Add student to the blacklist
+    * @param student address of student
+    * blacklisted student by default gets assigned a fine of 0 until it is assigned by librarian 
+    */
+  function addToBlacklist(address student) public isLibrarian {
+    require(NUSTokeninstance.isAddressInBlacklistedAddresses(student) != false, "Student found in blacklist"); // make sure student is not blacklisted
+    NUSTokeninstance.modifyBlacklist(student, true);
+    fineList[student] = 0; // add student to fine list, default is zero 
   }
 
-  function removeFromBlacklist(address student) public {
-    require(isPaid[student] == false, "Student has paid fine"); // student must not have paid his/her fine yet
+  /** 
+    * Student made to pay up his/her fines
+    * Remove student from blacklist 
+    * @param student address of student 
+    */
+  function removeFromBlacklist(address student) public isLibrarian {
     require(fineList[student] != 0, "Fine not assigned to student"); // fine must be assigned prior
     NUSTokeninstance.fine(student, fineList[student]);
-    isPaid[student] = true; // fine paid  
     emit fineCollected(student, fineList[student]);
 
     NUSTokeninstance.modifyBlacklist(student, false); // remove from nustoken blacklist 
