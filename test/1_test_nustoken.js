@@ -131,12 +131,15 @@ contract("NUSToken", function(accounts) {
 
     // Taking tokens from graduating students and returning to pool
     it("Retrieve all tokens from graduating/leaving student", async () => {
-        let account1Balance = await NUSTokenInstance.retrieveAllTokens(accounts[1])
+        let account1Balance = await NUSTokenInstance.balanceOf(accounts[1])
         let contractBalance = await NUSTokenInstance.balanceOf(NUSTokenInstance.address)
+        let retrieveTokens = await NUSTokenInstance.retrieveAllTokens(accounts[1])
 
         let account1BalanceAfter = await NUSTokenInstance.balanceOf(accounts[1])
         let contractBalanceAfter = await NUSTokenInstance.balanceOf(NUSTokenInstance.address)
 
+        //correct amount of tokens in contract
+        var correctContractBalance = Number(contractBalance) + Number(account1Balance) 
 
         assert.strictEqual(
             account1BalanceAfter.toNumber(),
@@ -146,7 +149,7 @@ contract("NUSToken", function(accounts) {
 
         assert.strictEqual(
             Number(contractBalanceAfter),
-            Number(contractBalance + account1Balance), // ERROR HERE 
+            Number(correctContractBalance), 
             "Contract did not receive the correct amount of tokens"
         );
     })
