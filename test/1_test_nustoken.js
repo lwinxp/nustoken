@@ -200,7 +200,7 @@ contract("NUSToken", function(accounts) {
     })
 
     // Add/Remove address into list of addresses that can blacklist addresses and check if it is in
-    it("Add/Remove address into addresses that can blacklist addresses and check functionality", async () => {
+    it("Add/Remove address using addresses that are granted blacklist rights, and check functionality", async () => {
 
         // ADDING 
 
@@ -215,7 +215,7 @@ contract("NUSToken", function(accounts) {
         );
 
         // checking if this address can blacklist other addresses & checking if that address is in the blacklist
-        let addAddrIntoBlacklist = await NUSTokenInstance.modifyBlacklist(accounts[2], true, {from: accounts[1]}) //ERROR HERE
+        let addAddrIntoBlacklist = await NUSTokenInstance.modifyBlacklist(accounts[2], true, {from: accounts[1]})
         let addressIsInBlacklist = await NUSTokenInstance.isAddressInBlacklistedAddresses(accounts[2], {from: accounts[1]})
 
         assert.equal(
@@ -237,19 +237,57 @@ contract("NUSToken", function(accounts) {
         );
 
         // checking if this address can blacklist other addresses & checking if that address is in the blacklist
-        let removeAddrFromBlacklist = await NUSTokenInstance.modifyBlacklist(accounts[2], false, {from: accounts[1]})
-        let addressInBlacklist = await NUSTokenInstance.isAddressInBlacklistedAddresses(accounts[2])
+        await truffleAssert.reverts(
+          NUSTokenInstance.modifyBlacklist(accounts[2], false, {from: accounts[1]}),
+          "Not eligible to blacklist addressess"
+        )
+        
+  
+        // let addressInBlacklist = await NUSTokenInstance.isAddressInBlacklistedAddresses(accounts[2])
 
-        assert.equal(
-            addressInBlacklist,
-            false,
-            "2nd address is in the blacklist even though removed"
-        );
+        // assert.notStrictEqual(
+        //     addressInBlacklist,
+        //     true,
+        //     "2nd address is in the blacklist even though removed"
+        // );
     })
 
     // Add/Remove address into list of addresses that can fine addresses and check if it is in
-    it("Add/Remove address into addresses that can fine addresses and check functionality", async () => {
-        // similar to the above
+    it("Fine address using addresses that are granted rights to fine others, and check functionality", async () => {
+        // ADDING 
+
+        // 3 refers to list of addresses that can fine addresses, true refers to adding to list
+        let addAddrIntoList = await NUSTokenInstance.modifyList(accounts[1], 3, true) 
+        let addressInList = await NUSTokenInstance.isAddressInCanFineAddresses(accounts[1])
+        
+        assert.equal(
+            addressInList,
+            true,
+            "1st Address cannot fine other addresses even though added"
+        );
+
+        // check if this address can fine other addresses
+        await NUSTokenInstance.giveTokens(accounts[2], 10);
+        let addrFined = await NUSTokenInstance.fine(accounts[2], 5, {from: accounts[1]});
+        truffleAssert.eventEmitted(addrFined, "fined")
+
+        // REMOVAL
+
+        // 3 refers to list of addresses that can fine other addresses, false refers to removing from list
+        let removeAddrFromList = await NUSTokenInstance.modifyList(accounts[1], 3, false) 
+        let addressInList2 = await NUSTokenInstance.isAddressInCanFineAddresses(accounts[1])
+
+        assert.equal(
+            addressInList2,
+            false,
+            "Address can still fine other addresses even though removed"
+        );
+
+        // checking if this address can blacklist other addresses & checking if that address is in the blacklist
+        await truffleAssert.reverts(
+          NUSTokenInstance.fine(accounts[2], 5, {from: accounts[1]}),
+          "Not an address that is allowed to fine"
+        )
     })
 
 });
