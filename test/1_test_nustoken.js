@@ -15,9 +15,9 @@ contract("NUSToken", function(accounts) {
     it("Correct current supply of NUS Tokens", async () => {
         let numberOfNusTokens = await NUSTokenInstance.balanceOf(NUSTokenInstance.address);
 
-        assert.notStrictEqual(
-            numberOfNusTokens,
-            ((2**256) - 1),
+        assert.strictEqual(
+            Number(numberOfNusTokens),
+            Number((2**256) - 1),
             "Incorrect token supply minted"
         );
     })
@@ -49,9 +49,9 @@ contract("NUSToken", function(accounts) {
         let gaveTokensFromSupply = await NUSTokenInstance.giveTokens(accounts[1], 1); // give 1 token
         let account1BalanceAfter = await NUSTokenInstance.balanceOf(accounts[1])
 
-        assert.notStrictEqual(
-            account1BalanceAfter,
-            account1Balance + 1,
+        assert.strictEqual(
+            Number(account1BalanceAfter),
+            Number(account1Balance) + 1,
             "Giving token from supply pool failed"
         );
     })
@@ -67,15 +67,15 @@ contract("NUSToken", function(accounts) {
         let account1BalanceAfter = await NUSTokenInstance.balanceOf(accounts[1])
         let contractBalanceAfter = await NUSTokenInstance.balanceOf(NUSTokenInstance.address)
 
-        assert.notStrictEqual(
-            account1BalanceAfter,
-            account1Balance - 1,
+        assert.strictEqual(
+            Number(account1BalanceAfter),
+            Number(account1Balance) - 1,
             "Taking token from accounts[1] failed"
         );
 
-        assert.notStrictEqual(
-            contractBalanceAfter,
-            contractBalance + 1,
+        assert.strictEqual(
+            Number(contractBalanceAfter),
+            Number(contractBalance) + 1,
             "Adding token to contract failed"
         );
     })
@@ -91,15 +91,15 @@ contract("NUSToken", function(accounts) {
 
         let contractBalanceAfter = await NUSTokenInstance.balanceOf(NUSTokenInstance.address)
 
-        assert.notStrictEqual(
-            account1BalanceAfter,
-            account1Balance - 1,
+        assert.strictEqual(
+            Number(account1BalanceAfter),
+            Number(account1Balance) - 1,
             "Taking token from accounts[1] failed"
         );
 
-        assert.notStrictEqual(
-            contractBalanceAfter,
-            contractBalance + 1,
+        assert.strictEqual(
+            Number(contractBalanceAfter),
+            Number(contractBalance) + 1,
             "Adding token to contract failed"
         );
     })
@@ -116,15 +116,15 @@ contract("NUSToken", function(accounts) {
         let contractBalanceAfter = await NUSTokenInstance.balanceOf(NUSTokenInstance.address)
 
 
-        assert.notStrictEqual(
-            account1BalanceAfter,
-            account1Balance + 10000,
+        assert.strictEqual(
+            Number(account1BalanceAfter),
+            Number(account1Balance) + 10000,
             "Distributing tokens to accounts[1] failed"
         );
 
-        assert.notStrictEqual(
-            BigInt(contractBalanceAfter),
-            BigInt(contractBalance - 10000),
+        assert.strictEqual(
+            Number(contractBalanceAfter),
+            Number(contractBalance) - 10000,
             "Taking tokens from contract failed"
         );
     })
@@ -144,9 +144,9 @@ contract("NUSToken", function(accounts) {
             "Retrieving tokens from student failed"
         );
 
-        assert.notStrictEqual(
-            contractBalanceAfter,
-            contractBalance + account1Balance,
+        assert.strictEqual(
+            Number(contractBalanceAfter),
+            Number(contractBalance + account1Balance), // ERROR HERE 
             "Contract did not receive the correct amount of tokens"
         );
     })
@@ -158,7 +158,7 @@ contract("NUSToken", function(accounts) {
         let addAddrIntoList = await NUSTokenInstance.modifyList(accounts[1], 0, true) 
         let addressInList = await NUSTokenInstance.isAddressInWhitelistAddresses(accounts[1])
         
-        assert.equal(
+        assert.strictEqual(
             addressInList,
             true,
             "Address is not in the whitelist even though added"
@@ -168,7 +168,7 @@ contract("NUSToken", function(accounts) {
         let removeAddrFromList = await NUSTokenInstance.modifyList(accounts[1], 0, false) 
         let addressInList2 = await NUSTokenInstance.isAddressInWhitelistAddresses(accounts[1])
 
-        assert.equal(
+        assert.strictEqual(
             addressInList2,
             false,
             "Address is still in the whitelist even though removed"
@@ -182,7 +182,7 @@ contract("NUSToken", function(accounts) {
         let addAddrIntoList = await NUSTokenInstance.modifyList(accounts[1], 1, true) 
         let addressInList = await NUSTokenInstance.isAddressInBlacklistedAddresses(accounts[1])
         
-        assert.equal(
+        assert.strictEqual(
             addressInList,
             true,
             "Address is not in the blacklist even though added"
@@ -192,7 +192,7 @@ contract("NUSToken", function(accounts) {
         let removeAddrFromList = await NUSTokenInstance.modifyList(accounts[1], 1, false) 
         let addressInList2 = await NUSTokenInstance.isAddressInBlacklistedAddresses(accounts[1])
 
-        assert.equal(
+        assert.strictEqual(
             addressInList2,
             false,
             "Address is still in the blacklist even though removed"
@@ -208,7 +208,7 @@ contract("NUSToken", function(accounts) {
         let addAddrIntoList = await NUSTokenInstance.modifyList(accounts[1], 2, true) 
         let addressInList = await NUSTokenInstance.isAddressInCanBlacklistAddresses(accounts[1])
         
-        assert.equal(
+        assert.strictEqual(
             addressInList,
             true,
             "1st Address cannot blacklist other addresses even though added"
@@ -218,7 +218,7 @@ contract("NUSToken", function(accounts) {
         let addAddrIntoBlacklist = await NUSTokenInstance.modifyBlacklist(accounts[2], true, {from: accounts[1]})
         let addressIsInBlacklist = await NUSTokenInstance.isAddressInBlacklistedAddresses(accounts[2], {from: accounts[1]})
 
-        assert.equal(
+        assert.strictEqual(
             addressIsInBlacklist,
             true,
             "2nd address is not in the blacklist even though added"
@@ -230,7 +230,7 @@ contract("NUSToken", function(accounts) {
         let removeAddrFromList = await NUSTokenInstance.modifyList(accounts[1], 2, false) 
         let addressInList2 = await NUSTokenInstance.isAddressInCanBlacklistAddresses(accounts[1])
 
-        assert.equal(
+        assert.strictEqual(
             addressInList2,
             false,
             "Address can still blacklist other addresses even though removed"
@@ -251,7 +251,7 @@ contract("NUSToken", function(accounts) {
         let addAddrIntoList = await NUSTokenInstance.modifyList(accounts[1], 3, true) 
         let addressInList = await NUSTokenInstance.isAddressInCanFineAddresses(accounts[1])
         
-        assert.equal(
+        assert.strictEqual(
             addressInList,
             true,
             "1st Address cannot fine other addresses even though added"
@@ -268,7 +268,7 @@ contract("NUSToken", function(accounts) {
         let removeAddrFromList = await NUSTokenInstance.modifyList(accounts[1], 3, false) 
         let addressInList2 = await NUSTokenInstance.isAddressInCanFineAddresses(accounts[1])
 
-        assert.equal(
+        assert.strictEqual(
             addressInList2,
             false,
             "Address can still fine other addresses even though removed"
