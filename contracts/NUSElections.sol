@@ -8,18 +8,11 @@ import "./NUSToken.sol";
  * @title NUSElections
  */
 
- /** 
- * To-do:
- * 1. Use NUSToken once NUSToken contract is ready
- * 2. Events 
- */
-
 contract NUSElections {
 
     struct Voter {
         uint256 weight; // weight is accumulated by delegation, default is 0
         bool voted;  // if true, that person already voted, default is false 
-        // address delegate; // person delegated to
         uint256 vote;   // index of the voted proposal, default is 0
     }
 
@@ -41,6 +34,9 @@ contract NUSElections {
     /** 
      * Create a new election
      * @param options a list of options, always start from index 0. (frontend need to configure it to start from 0)
+     * @param minVoters minimum voters required before the election can end
+     * @param reward Voting reward (NUSToken) for voting in the election
+     * @param nusTokenInstanceAddress NUSToken Address
      */
     constructor(uint256[] memory options, uint256 minVoters, uint reward, NUSToken nusTokenInstanceAddress) public {
         nusTokenInstance = nusTokenInstanceAddress;
@@ -101,8 +97,8 @@ contract NUSElections {
         _;
     }
 
-    modifier positiveTokenBalance() {
-        require(nusTokenInstance.balanceOf(address(this)) > 0, "NUS Token balance must be more than 0.");
+    modifier positiveTokenBalance(address add) {
+        require(nusTokenInstance.balanceOf(add) > 0, "NUS Token balance must be more than 0.");
         _;
     }
 
@@ -126,6 +122,7 @@ contract NUSElections {
         );
         _;
     }
+
     // main functions 
 
     /**
@@ -133,7 +130,7 @@ contract NUSElections {
     * As long as the election is ongoing, the user can change their vote by revoting.
     * @param votingChoice uint256, which must be in range of the votingOptions
     **/
-    function vote(uint256 votingChoice) electionOngoing validVotingChoice(votingChoice) public {
+    function vote(uint256 votingChoice) electionOngoing validVotingChoice(votingChoice) positiveTokenBalance(address(msg.sender)) public {
         uint256 curr_voter_NUST = nusTokenInstance.balanceOf(msg.sender);
         // uint256 curr_voter_NUST = 1;
         Voter memory curr_voter = Voter(curr_voter_NUST, true, votingChoice);
@@ -208,49 +205,15 @@ contract NUSElections {
                     emit drawVotes(i);
                 }
             }
-
         }
-
         return votingResultsList;
-
-        // ignore this part first 
-        // uint256 majority = (totalVotes - 1) / votingOptions.length + 1;
-        // uint256 winningVoteCount = 0;
-        // bool[] memory winningTracker = new bool[](votingOptions.length); // true for winning vote, default to false
-        // // majority winner 
-        // for (uint256 i=0; i<votingResultsList.length; i++) {
-        //     if (votingResultsList[i] >= majority) {
-        //         winningTracker[i] = true;
-        //         winningVoteCount += 1;
-        //     }
-        // }
-
-        // if (totalVotes < votingOptions.length) {
-        //     // cannot do majority for this case 
-
-        //     return votingResultsList;
-        // }
-
-        // if (winningVoteCount == 0) {
-        //     emit noWinningVote();
-        // } else if (winningVoteCount == 1) {  // 1 majority winning vote
-        //     for (uint256 i=0; i<winningTracker.length; i++) {
-        //         if (winningTracker[i]) {
-        //             emit winningVote(i);
-        //             break;
-        //         }
-        //     }
-        // } else { // multiple winning vote / draw 
-        //     emit draw();
-        //     for (uint256 i=0; i<winningTracker.length; i++) {
-        //         if (winningTracker[i]) {
-        //             emit multpleWinningVote(i);
-        //         }
-        //     }
-        // }
-        
     }
 
+    /**
+    * Function to issue voting reward to the voters
+    * Rewards are issued on a first come first serve basis 
+    * NUSElection contract needs to be whitelisted by NUSToken beforehand to issue the token
+    */
     function issueVotingReward() public balanceEqualExceedReward electionEnded electionOwnerOnly votingRewardNotIssued {
         for (uint256 i=0; i<voterList.length; i++) {
             if(nusTokenInstance.balanceOf(address(this)) >= votingReward) {
@@ -258,17 +221,20 @@ contract NUSElections {
                 votersRewarded[voterList[i]] = true;
             }
         }
-        //  voting rewards completed
+        // voting rewards completed
         rewardStatus = true;
     }
-    // NUSElections contract address needs to be whitelisted by NUSToken contract to giveTokens
 
-    function returnTokenToAdmin() public positiveTokenBalance electionEnded electionOwnerOnly votingRewardIssued {
+    /**
+    * Function to return the excess NUSToken (if any) back to the NUSToken contract after voting rewards are issued
+    */
+    function returnTokenToAdmin() public positiveTokenBalance(address(this)) electionEnded electionOwnerOnly votingRewardIssued {
         uint256 nusElectionsBalance = nusTokenInstance.balanceOf(address(this));
         nusTokenInstance.takeTokensGiveTo(address(this), address(nusTokenInstance), nusElectionsBalance);
     }
 
     // getters and helpers 
+
     function hasVoted(address userAddress) public view returns(bool) {
         return voters[userAddress].voted; // because getVotingChoice returns 0 by default even if voter has not voted
     }
