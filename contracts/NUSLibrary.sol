@@ -33,6 +33,7 @@ contract NUSLibrary {
       address student = listOfLateBorrowers[i]; 
       require(NUSTokeninstance.isAddressInBlacklistedAddresses(student), "Student not found in blacklist"); // make sure student is not an existing offender 
       NUSTokeninstance.modifyBlacklist(student, true); // add student to blacklist 
+      fineList[student] = 0; //default set fine to zero
       isPaid[student] = false; // student marked as not paid
     }
     emit BlacklistAppended(listOfLateBorrowers);
