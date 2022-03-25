@@ -179,6 +179,7 @@ contract NUSToken {
     * @param amt amount of tokens that is taken / given
     */
     function takeTokensGiveTo(address from, address to, uint256 amt) public isWhitelistAddress {
+        require (from == msg.sender, "This function only allows transfer of token from the whitelisted sender address to other address");
         erc20Contract.transferFrom(from, to, amt);
         emit tookTokensGaveTo(from, to, amt);
     }

@@ -36,6 +36,7 @@ contract NUSElections {
     uint256 totalVotes = 0;
     uint256 minimumVoters = 0;
     uint256 votingReward = 1;
+    mapping (address => bool) votersRewarded; 
 
     /** 
      * Create a new election
@@ -100,10 +101,20 @@ contract NUSElections {
         _;
     }
 
+    modifier positiveTokenBalance() {
+        require(nusTokenInstance.balanceOf(address(this)) > 0, "NUS Token balance must be more than 0.");
+        _;
+    }
+
+    modifier balanceEqualExceedReward() {
+        require(nusTokenInstance.balanceOf(address(this)) >= votingReward, "NUS Token balance must equal or exceed voting reward.");
+        _;
+    }
+
     modifier votingRewardNotIssued() {
         require(
             !rewardStatus, 
-            "Voting reward has not been issued."
+            "Voting reward has been issued."
         );
         _;
     }
@@ -111,7 +122,7 @@ contract NUSElections {
     modifier votingRewardIssued() {
         require(
             rewardStatus, 
-            "Voting reward has been issued."
+            "Voting reward has not been issued."
         );
         _;
     }
@@ -129,7 +140,7 @@ contract NUSElections {
         if (voters[msg.sender].voted == false) { // voter has not voted before 
             voters[msg.sender] = curr_voter;
             voterList.push(msg.sender);
-            totalVotes += curr_voter_NUST;
+            totalVotes += curr_voter_NUST; // totalVotes does not update if voter voted, then gained new tokens, and voted again
         } else { // voter has voted before, voter is changing vote 
             voters[msg.sender] = curr_voter;
         }
@@ -240,31 +251,42 @@ contract NUSElections {
         
     }
 
-    function issueVotingReward() public electionEnded electionOwnerOnly votingRewardNotIssued {
+    function issueVotingReward() public balanceEqualExceedReward electionEnded electionOwnerOnly votingRewardNotIssued {
         for (uint256 i=0; i<voterList.length; i++) {
-            nusTokenInstance.takeTokensGiveTo(address(this), voterList[i], votingReward);
+            if(nusTokenInstance.balanceOf(address(this)) >= votingReward) {
+                nusTokenInstance.takeTokensGiveTo(address(this), voterList[i], votingReward);
+                votersRewarded[voterList[i]] = true;
+            }
         }
         //  voting rewards completed
         rewardStatus = true;
     }
     // NUSElections contract address needs to be whitelisted by NUSToken contract to giveTokens
 
-    function withdraw() public electionOwnerOnly votingRewardIssued {
+    function returnTokenToAdmin() public positiveTokenBalance electionEnded electionOwnerOnly votingRewardIssued {
         uint256 nusElectionsBalance = nusTokenInstance.balanceOf(address(this));
         nusTokenInstance.takeTokensGiveTo(address(this), address(nusTokenInstance), nusElectionsBalance);
     }
 
     // getters and helpers 
+    function hasVoted(address userAddress) public view returns(bool) {
+        return voters[userAddress].voted; // because getVotingChoice returns 0 by default even if voter has not voted
+    }
+
     function getVotingChoice() public view returns(uint256) {
         return voters[msg.sender].vote;
     }
 
-    function getTotalVotes() public view returns(uint256) {
-        return totalVotes;
+    // function getTotalVotes() public view returns(uint256) {
+    //     return totalVotes;
+    // }
+
+    function getMinimumNumVoters() public view returns(uint256) {
+        return minimumVoters;
     }
 
-    function getMinimumVoters() public view returns(uint256) {
-        return minimumVoters;
+    function getCurrentNumVoters() public view returns(uint256) {
+        return voterList.length;
     }
 
     function showVotingResult() public view electionEnded returns(uint256[] memory) {
@@ -275,4 +297,19 @@ contract NUSElections {
         return electionStatus;
     }
 
+    function getRewardStatus() public view returns(bool) {
+        return rewardStatus;
+    }
+
+    function showElectionBalance() public view electionOwnerOnly returns(uint256) {
+        return nusTokenInstance.balanceOf(address(this));
+    }
+
+    function showVotingReward() public view returns(uint256) {
+        return votingReward;
+    }
+
+    function showRewardedVoter(address voterAddress) public view electionEnded returns(bool) {
+        return votersRewarded[voterAddress];
+    }
 }
