@@ -108,6 +108,14 @@ contract('NUSModReg', function(accounts) {
         )
     })
 
+    it('Bidding Doesnt Work for blacklisted Address', async() =>{
+        await NUSTokenInstance.modifyList(accounts[5],1,true);
+        await truffleAssert.reverts(
+            NUSModRegInstance.bid(mod1, {from: accounts[5]}),
+            "You are blacklisted and banned from bidding"
+        );
+    })
+
     it('Multiple Bidding Works', async() =>{
         await NUSModRegInstance.bid(mod1, {from: accounts[1]});
 
