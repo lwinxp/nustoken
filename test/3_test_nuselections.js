@@ -16,6 +16,10 @@ contract('NUSElections', function(accounts) {
 
   console.log("Testing NUS Elections");
 
+  it('Student must have a positive NUSToken balance inorder to take part in the election', async() => {
+    await truffleAssert.reverts(NUSElectionsInstance.vote(0, {from: accounts[1]}), "NUS Token balance must be more than 0.")
+  });
+
   it('Give Tokens to students', async() =>{
       await NUSTokenInstance.giveTokens(accounts[1],100);
       await NUSTokenInstance.giveTokens(accounts[2],200);
@@ -56,7 +60,7 @@ contract('NUSElections', function(accounts) {
     await truffleAssert.reverts(NUSElectionsInstance.tallyVote({from: accounts[0]}), "Election has not met minimum required number of voters.")
   });
 
-  it('Student cannot vote for an invalid option', async() => {
+  it('Student cannot vote for an invalid voting option', async() => {
     await truffleAssert.reverts(NUSElectionsInstance.vote(3, {from: accounts[2]}), "Invalid voting option.");
   });
 
@@ -127,8 +131,6 @@ contract('NUSElections', function(accounts) {
       10,
       "Failed to give Tokens"
     )
-
-    assert.strictEqual(showElectionsBalance.toNumber(),10)
 
     await truffleAssert.reverts(NUSElectionsInstance.issueVotingReward({from: accounts[1]}), "Only election owner can perform this action.")
   });
