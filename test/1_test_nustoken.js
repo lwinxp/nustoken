@@ -239,11 +239,11 @@ contract("NUSToken", function(accounts) {
         // checking if this address can blacklist other addresses & checking if that address is in the blacklist
         await truffleAssert.reverts(
           NUSTokenInstance.modifyBlacklist(accounts[2], false, {from: accounts[1]}),
-          "Not eligible to blacklist addressess"
+          "Not eligible to blacklist addresses"
         )
     })
 
-    // Add/Remove address into list of addresses that can fine addresses and check if it is in
+    // Add/Remove address into list of addresses that can fine addresses and check if it is in canFine list 
     it("Fine address using addresses that are granted rights to fine others, and check functionality", async () => {
         // ADDING 
 
@@ -274,7 +274,7 @@ contract("NUSToken", function(accounts) {
             "Address can still fine other addresses even though removed"
         );
 
-        // checking if this address can blacklist other addresses & checking if that address is in the blacklist
+        // Check if this address can fine other addresses
         await truffleAssert.reverts(
           NUSTokenInstance.fine(accounts[2], 5, {from: accounts[1]}),
           "Not an address that is allowed to fine"
