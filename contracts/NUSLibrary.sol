@@ -21,10 +21,9 @@ contract NUSLibrary {
   }
 
   //Event 
-  event BlacklistAppended(address[] listLate); 
   event fineAssigned(address student, uint256 amt);
   event fineCollected(address student, uint256 amt);
-  event BlacklistUpdated(address student);
+  event blacklistUpdated(address student);
 
    /** 
      * Assign fine to each blacklisted options
@@ -32,7 +31,6 @@ contract NUSLibrary {
      * @param amt amount that librarian decides to fine student, amount calculated offchain 
      */
   function assignFine(address student, uint256 amt) public isLibrarian {
-    require(NUSTokeninstance.isAddressInBlacklistedAddresses(student), "Student not found in blacklist"); // make sure student is blacklisted
     fineList[student] += amt; // cummulative fine 
     emit fineAssigned(student, amt);
   }
@@ -42,10 +40,10 @@ contract NUSLibrary {
     * @param student address of student
     * blacklisted student by default gets assigned a fine of 0 until it is assigned by librarian 
     */
-  function addToBlacklist(address student) public isLibrarian {
-    require(NUSTokeninstance.isAddressInBlacklistedAddresses(student) != false, "Student found in blacklist"); // make sure student is not blacklisted
+  function addToBlacklist(address student) public isLibrarian { 
     NUSTokeninstance.modifyBlacklist(student, true);
     fineList[student] = 0; // add student to fine list, default is zero 
+    emit blacklistUpdated(student);
   }
 
   /** 
@@ -59,6 +57,6 @@ contract NUSLibrary {
     emit fineCollected(student, fineList[student]);
 
     NUSTokeninstance.modifyBlacklist(student, false); // remove from nustoken blacklist 
-    emit BlacklistUpdated(student);
+    emit blacklistUpdated(student);
   }
 }
