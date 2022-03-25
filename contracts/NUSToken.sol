@@ -86,7 +86,7 @@ contract NUSToken {
     // @dev checking if msg sender is eligible to blacklist users/students
     */
     modifier isCanBlacklistAddress() {
-        require(canBlacklistAddresses[msg.sender], "Not eligible to blacklist addressess");
+        require(canBlacklistAddresses[msg.sender], "Not eligible to blacklist addresses");
         _;
     }
 
