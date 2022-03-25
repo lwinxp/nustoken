@@ -131,6 +131,8 @@ contract('NUSElections', function(accounts) {
       10,
       "Failed to give Tokens"
     )
+    
+    assert.strictEqual(showElectionsBalance.toNumber(),10)
 
     await truffleAssert.reverts(NUSElectionsInstance.issueVotingReward({from: accounts[1]}), "Only election owner can perform this action.")
   });
