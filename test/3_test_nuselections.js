@@ -48,6 +48,10 @@ contract('NUSElections', function(accounts) {
     await truffleAssert.reverts(NUSElectionsInstance.tallyVote({from: accounts[0]}), "Election has not met minimum required number of voters.")
   });
 
+  it('Student cannot vote for an invalid option', async() => {
+    await truffleAssert.reverts(NUSElectionsInstance.vote(3, {from: accounts[2]}), "Invalid voting option.");
+  });
+
   it('Student 2 can vote for election option 1', async() => {
     await NUSElectionsInstance.vote(1, {from: accounts[2]});
     
