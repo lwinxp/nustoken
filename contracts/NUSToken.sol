@@ -236,6 +236,8 @@ contract NUSToken {
         return owner;
     }
 
+    // CHECKING ADDRESS IN VARIOUS LISTS
+
     function isAddressInWhitelistAddresses(address addr) view public returns (bool) {
         return whitelistAddresses[addr];
     }
