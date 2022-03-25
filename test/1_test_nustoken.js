@@ -241,15 +241,6 @@ contract("NUSToken", function(accounts) {
           NUSTokenInstance.modifyBlacklist(accounts[2], false, {from: accounts[1]}),
           "Not eligible to blacklist addressess"
         )
-        
-  
-        // let addressInBlacklist = await NUSTokenInstance.isAddressInBlacklistedAddresses(accounts[2])
-
-        // assert.notStrictEqual(
-        //     addressInBlacklist,
-        //     true,
-        //     "2nd address is in the blacklist even though removed"
-        // );
     })
 
     // Add/Remove address into list of addresses that can fine addresses and check if it is in
