@@ -217,12 +217,6 @@ contract NUSToken {
         emit tokensRetrieved(addr);
     }
 
-
-
-    function giveApproval(address receipt, uint256 amt) public {
-        erc20Contract.approve(receipt, amt);
-    }
-
     // GETTERS
 
     function getTotalSupply() public view returns (uint256) {
