@@ -4,11 +4,6 @@ import './ERC20.sol';
 
 contract NUSToken {
 
-    /**
-    TO DO LIST:
-    1. check if value is already 0 for fine() then decide what to do with this
-    */
-
     ERC20 erc20Contract;
     uint256 SUPPLY_TOKEN_LIMIT = (2**256) - 1; // supply of tokens
     uint256 SEMESTER_TOKEN_DISTRIBUTION_NUMBER = 10000; // no. of tokens to be given out every semester
