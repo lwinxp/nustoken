@@ -16,6 +16,7 @@ contract('NUSModReg', function(accounts) {
     before(async () => {
         NUSTokenInstance = await NUSToken.deployed();
         NUSModRegInstance = await NUSModReg.deployed();
+        NUSModRegInstanceDraw = await NUSModReg.new(NUSTokenInstance.address);
     });
 
     console.log("Testing NUS ModReg");
@@ -107,6 +108,14 @@ contract('NUSModReg', function(accounts) {
         )
     })
 
+    it('Bidding Doesnt Work for blacklisted Address', async() =>{
+        await NUSTokenInstance.modifyList(accounts[5],1,true);
+        await truffleAssert.reverts(
+            NUSModRegInstance.bid(mod1, {from: accounts[5]}),
+            "You are blacklisted and banned from bidding"
+        );
+    })
+
     it('Multiple Bidding Works', async() =>{
         await NUSModRegInstance.bid(mod1, {from: accounts[1]});
 
@@ -151,11 +160,40 @@ contract('NUSModReg', function(accounts) {
         )
 
     })
-    // TODO @Jin-Jiayu after we have a way to reset the allocation
-    // it('Allocation Works with same Tokens', async() =>{
-    
 
-    // })
+    it('Allocation Works with same Tokens', async() =>{
+        await NUSTokenInstance.giveTokens(accounts[3],100);
+        await NUSTokenInstance.giveTokens(accounts[4],100);
+        
+        await NUSModRegInstanceDraw.registerModules([mod1,mod2],[modQuota1,modQuota2]);
+        
+        await NUSModRegInstanceDraw.getModuleQuota(mod1);
+        await NUSModRegInstanceDraw.getModuleQuota(mod2);
+
+        await NUSModRegInstanceDraw.bid(mod1, {from: accounts[3]});
+        await NUSModRegInstanceDraw.bid(mod1, {from: accounts[4]});
+
+        await NUSModRegInstanceDraw.bid(mod2, {from: accounts[3]});
+        await NUSModRegInstanceDraw.bid(mod2, {from: accounts[4]});
+
+        await NUSModRegInstanceDraw.allocate();
+
+        let modAllocation1 = await NUSModRegInstanceDraw.getMyAllocation({from: accounts[3]});
+        let modAllocation2 = await NUSModRegInstanceDraw.getMyAllocation({from: accounts[4]});
+
+        assert.strictEqual(
+            modAllocation1.length,
+            2,
+            "Failed to give module to first come first serve in duplicates"
+        )
+
+        assert.strictEqual(
+            modAllocation2.length,
+            1,
+            "Failed to give module to first come first serve in duplicates"
+        )
+
+    })
 
     
     
