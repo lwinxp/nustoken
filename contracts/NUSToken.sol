@@ -228,18 +228,35 @@ contract NUSToken {
 
     // CHECKING ADDRESS IN VARIOUS LISTS
 
+    /** 
+    * @dev check if address is in whitelist
+    * @param addr address of user to be checked.
+    */
     function isAddressInWhitelistAddresses(address addr) view public returns (bool) {
         return whitelistAddresses[addr];
     }
 
+    /** 
+    * @dev check if address is in blacklist
+    * @param addr address of user to be checked.
+    */
     function isAddressInBlacklistedAddresses(address addr) view public returns (bool) {
         return blacklistedAddresses[addr];
     }
 
+    /** 
+    * @dev check if address is in list of addresses that can blacklist other users
+    * @param addr address of user to be checked.
+    */
     function isAddressInCanBlacklistAddresses(address addr) view public returns (bool) {
         return canBlacklistAddresses[addr];
     }
 
+
+    /** 
+    * @dev check if address is in list of addresses that can fine other users
+    * @param addr address of user to be checked.
+    */
     function isAddressInCanFineAddresses(address addr) view public returns (bool) {
         return canFineAddresses[addr];
     }
