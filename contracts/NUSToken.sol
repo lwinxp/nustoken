@@ -7,7 +7,7 @@ contract NUSToken {
     ERC20 erc20Contract;
     uint256 SUPPLY_TOKEN_LIMIT = (2**256) - 1; // supply of tokens
     uint256 SEMESTER_TOKEN_DISTRIBUTION_NUMBER = 10000; // no. of tokens to be given out every semester
-    mapping(address => bool) whitelistAddresses; // extra addresses that can distribute tokens, does not include contract owner (aka NUS)
+    mapping(address => bool) whitelistAddresses; // extra addresses that can distribute tokens, does include contract owner (aka NUS)
     mapping(address => bool) blacklistedAddresses; // addresses that are blacklisted and cannot see results or bid for modules
     mapping(address => bool) canBlacklistAddresses; // addresses that can blacklist other addresses
     mapping(address => bool) canFineAddresses; // addresses that can fine users/students (eg; NUS, library)
