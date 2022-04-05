@@ -45,13 +45,11 @@ contract('NUSElections', function(accounts) {
       
       hasVoted1 = await NUSElectionsInstance.hasVoted(accounts[1])
       getVotingChoice1 = await NUSElectionsInstance.getVotingChoice({from: accounts[1]})
-      getCurrentNumVoters1 = await NUSElectionsInstance.getCurrentNumVoters({from: accounts[1]})
       getMinimumNumVoters1 = await NUSElectionsInstance.getMinimumNumVoters({from: accounts[1]})
       showVotingReward1 = await NUSElectionsInstance.showVotingReward({from: accounts[1]})
 
       assert.strictEqual(hasVoted1, true);
       assert.strictEqual(getVotingChoice1.toNumber(), 0);
-      assert.strictEqual(getCurrentNumVoters1.toNumber(), 1);
       assert.strictEqual(getMinimumNumVoters1.toNumber(), 2);
       assert.strictEqual(showVotingReward1.toNumber(), 1);
   });
@@ -69,16 +67,23 @@ contract('NUSElections', function(accounts) {
     await NUSElectionsInstance.vote(1, {from: accounts[2]});
     
     getVotingChoice2 = await NUSElectionsInstance.getVotingChoice({from: accounts[2]})
-    getCurrentNumVoters2 = await NUSElectionsInstance.getCurrentNumVoters({from: accounts[2]})
     getMinimumNumVoters2 = await NUSElectionsInstance.getMinimumNumVoters({from: accounts[2]})
     showVotingReward2 = await NUSElectionsInstance.showVotingReward({from: accounts[2]})
 
     assert.strictEqual(hasVoted2, false);
     assert.strictEqual(getVotingChoice2.toNumber(), 1);
-    assert.strictEqual(getCurrentNumVoters2.toNumber(), 2);
     assert.strictEqual(getMinimumNumVoters2.toNumber(), 2);
     assert.strictEqual(showVotingReward2.toNumber(), 1);
   });
+
+  it('Voters cannot see the total number of voters when the election is ongoing', async() => {
+    await truffleAssert.reverts(NUSElectionsInstance.getCurrentNumVoters({from: accounts[2]}), "Election ongoing, only election owner can see total number of voters during an election.")
+  });
+
+  it('Only election owner can see total number of voters when the election is ongoing', async() => {
+    getCurrentNumVoters1 = await NUSElectionsInstance.getCurrentNumVoters({from: accounts[0]})
+    assert.strictEqual(getCurrentNumVoters1.toNumber(), 2);
+  });  
 
   it('tallyVote cannot be called by account that is not election owner', async() => {
     await truffleAssert.reverts(NUSElectionsInstance.tallyVote({from: accounts[1]}), "Only election owner can perform this action.")
@@ -95,6 +100,11 @@ contract('NUSElections', function(accounts) {
     assert.strictEqual(getElectionStatus1, true);
   });
 
+  it('Voters can see total number of voters after election has ended', async() => {
+    getCurrentNumVoters2 = await NUSElectionsInstance.getCurrentNumVoters({from: accounts[2]})
+    assert.strictEqual(getCurrentNumVoters1.toNumber(), 2);
+  });
+
   it('getVotingResult cannot be called by account that is not election owner', async() => {
     await truffleAssert.reverts(NUSElectionsInstance.getVotingResult({from: accounts[1]}), "Only election owner can perform this action.")
   });
@@ -104,12 +114,6 @@ contract('NUSElections', function(accounts) {
 
     truffleAssert.eventEmitted(getVotingResult0, "winningVote");
   });
-
-  // it('getTotalVotes can be called to get correct total votes', async() => {
-  //   getTotalVotes0 = await NUSElectionsInstance.getTotalVotes({from: accounts[0]})
-
-  //   assert.strictEqual(getTotalVotes0.toNumber(), 300);
-  // });
 
   it('showVotingResult can be called to get correct votes per option', async() => {
     showVotingResult1 = await NUSElectionsInstance.showVotingResult({from: accounts[1]})

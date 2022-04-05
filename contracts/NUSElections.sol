@@ -252,6 +252,9 @@ contract NUSElections {
     }
 
     function getCurrentNumVoters() public view returns(uint256) {
+        if (!electionStatus) {
+            require(msg.sender == electionOwner, "Election ongoing, only election owner can see total number of voters during an election.");
+        }
         return voterList.length;
     }
 
